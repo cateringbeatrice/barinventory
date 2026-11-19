@@ -1,0 +1,1504 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Bar Inventory">
+<title>Bar Inventory — Traiteur Beatrice</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Josefin+Sans:wght@300;400;600;700&family=Mulish:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--brown:#966A4D;--brown-d:#7a5539;--cream:#F8F4F0;--ink:#2E231C;--muted:#8a7b70;--line:#e6ddd4;--white:#fff;--red:#b3402e;--green:#4f7a4a;--soft:#fbf8f5}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--cream);color:var(--ink);font-family:'Mulish',sans-serif;font-size:16px}
+h1,h2,h3{font-family:'Josefin Sans',sans-serif}
+button,input,select,textarea{font:inherit;color:inherit}
+input,select,textarea{font-size:16px}
+
+header{position:sticky;top:0;z-index:20;background:var(--cream);border-bottom:1px solid var(--line);
+  display:grid;grid-template-columns:1fr auto 1fr;align-items:center;padding:12px 20px;padding-top:max(12px,env(safe-area-inset-top))}
+.logo{display:flex;align-items:center;gap:10px;min-width:0}
+.logo img{height:34px;width:auto;display:block}
+.wordmark{font-family:'Josefin Sans';font-weight:300;letter-spacing:.18em;text-transform:uppercase;font-size:13px;line-height:1.15;color:var(--brown)}
+.wordmark b{display:block;font-weight:600;font-size:17px;letter-spacing:.2em;color:var(--ink)}
+header h1{margin:0;font-weight:600;letter-spacing:.28em;font-size:22px;text-align:center;white-space:nowrap}
+.counter{justify-self:end;text-align:right;font-size:12px;color:var(--muted);line-height:1.3}
+.counter b{display:block;font-family:'Josefin Sans';font-size:24px;color:var(--brown);font-weight:600}
+.sync{display:inline-block;width:8px;height:8px;border-radius:50%;background:#c9b9ab;margin-right:5px;vertical-align:middle}
+.sync.on{background:var(--green)}.sync.local{background:#d49a3a}.sync.err{background:var(--red)}
+
+nav{display:flex;gap:6px;padding:10px 20px 0;max-width:1100px;margin:0 auto;overflow-x:auto}
+nav button{border:0;background:none;padding:10px 16px;font-family:'Josefin Sans';font-weight:600;letter-spacing:.14em;text-transform:uppercase;font-size:13px;color:var(--muted);border-bottom:2px solid transparent;cursor:pointer;white-space:nowrap}
+nav button.active{color:var(--ink);border-color:var(--brown)}
+main{max-width:1100px;margin:0 auto;padding:16px 20px 80px}
+.view{display:none}.view.active{display:block}
+
+.toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:12px}
+.search{flex:1;min-width:200px;padding:13px 16px;border:1px solid var(--line);border-radius:12px;background:var(--white);outline:none}
+.search:focus,.field input:focus,.field select:focus,td input:focus{border-color:var(--brown)}
+.btn{border:1px solid var(--brown);background:var(--brown);color:#fff;padding:12px 18px;border-radius:12px;font-weight:700;cursor:pointer;white-space:nowrap}
+.btn.ghost{background:transparent;color:var(--brown)}
+.btn.danger{background:transparent;border-color:var(--red);color:var(--red)}
+.btn.dark{background:var(--ink);border-color:var(--ink)}
+.btn.sm{padding:8px 12px;font-size:14px;border-radius:10px}
+.btn:disabled{opacity:.45;cursor:default}
+.chips{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+.chip{border:1px solid var(--line);background:var(--white);padding:8px 14px;border-radius:999px;font-size:14px;font-weight:600;cursor:pointer;color:var(--muted)}
+.chip.active{background:var(--ink);border-color:var(--ink);color:#fff}
+
+.group{margin-bottom:18px}
+.group h3,.sec h3{margin:0 0 8px;font-size:13px;letter-spacing:.2em;text-transform:uppercase;color:var(--brown);font-weight:600}
+.list{background:var(--white);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.row{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;padding:13px 16px;border-top:1px solid var(--line);cursor:pointer}
+.row:first-child{border-top:0}
+.row:active{background:#f3ece5}
+.row .name{font-weight:700}
+.row .meta{font-size:13px;color:var(--muted);margin-top:2px}
+.row .tot{font-family:'Josefin Sans';font-size:22px;font-weight:600;min-width:60px;text-align:right}
+.row .tot.zero{color:#c4b5a8}
+.row .tot small{font-family:'Mulish';font-size:11px;color:var(--muted);font-weight:600;margin-left:3px}
+.empty{padding:30px;text-align:center;color:var(--muted)}
+
+.overlay{position:fixed;inset:0;background:rgba(46,35,28,.45);z-index:50;display:none;align-items:flex-end;justify-content:center}
+.overlay.open{display:flex}
+.sheet{background:var(--cream);width:100%;max-width:720px;max-height:94vh;overflow:auto;border-radius:20px 20px 0 0;padding:18px 22px 30px;padding-bottom:max(30px,env(safe-area-inset-bottom))}
+.sheet.wide{max-width:1060px}
+@media(min-width:800px){.overlay{align-items:center}.sheet{border-radius:20px;max-height:92vh}}
+.sheet-top{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+.sheet h2{margin:4px 0 2px;font-size:24px;font-weight:600;letter-spacing:.04em}
+.close{background:var(--white);width:40px;height:40px;border-radius:50%;font-size:22px;cursor:pointer;flex:none;border:1px solid var(--line)}
+.sub{color:var(--muted);font-size:14px}
+.big{text-align:center;margin:16px 0 6px}
+.big .n{font-family:'Josefin Sans';font-size:72px;font-weight:600;line-height:1}
+.big .u{font-size:13px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted)}
+.modes{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:16px 0}
+.mode{border:2px solid var(--line);background:var(--white);border-radius:14px;padding:14px 6px;font-weight:800;font-size:17px;cursor:pointer}
+.mode.add.active{border-color:var(--green);background:var(--green);color:#fff}
+.mode.remove.active{border-color:var(--red);background:var(--red);color:#fff}
+.mode.count.active{border-color:var(--brown);background:var(--brown);color:#fff}
+.mode-hint{font-size:13px;color:var(--muted);text-align:center;margin:-6px 0 12px;min-height:18px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.grid3{display:grid;grid-template-columns:2fr 1fr 1fr;gap:12px}
+@media(max-width:560px){.grid2,.grid3{grid-template-columns:1fr}}
+.field{display:flex;flex-direction:column;gap:5px;margin-bottom:12px}
+.field label{font-size:12px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.field input,.field select,.field textarea{padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:var(--white);outline:none;width:100%}
+.qty{display:grid;grid-template-columns:52px 1fr 52px;gap:6px}
+.qty button{border:1px solid var(--line);background:var(--white);border-radius:12px;font-size:24px;font-weight:700;cursor:pointer}
+.qty input{text-align:center;font-size:22px;font-weight:800}
+.stamp{font-size:13px;color:var(--muted);margin:-4px 0 12px}
+.save{width:100%;padding:16px;font-size:17px}
+.hist{margin-top:24px}
+.hist h3{font-size:13px;letter-spacing:.2em;text-transform:uppercase;color:var(--brown);margin:0 0 8px}
+table{width:100%;border-collapse:collapse;background:var(--white);font-size:14px}
+th{text-align:left;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);padding:9px 8px;border-bottom:1px solid var(--line);background:var(--soft);white-space:nowrap}
+td{padding:9px 8px;border-top:1px solid var(--line);vertical-align:middle}
+td.num,th.num{text-align:right}
+td.mv{font-weight:800;white-space:nowrap}
+.mv.add{color:var(--green)}.mv.remove{color:var(--red)}.mv.count{color:var(--brown)}
+.note{color:var(--muted);font-size:12px}
+.del{border:0;background:none;color:var(--red);font-weight:700;cursor:pointer;padding:4px 6px}
+.tablewrap{overflow-x:auto;border:1px solid var(--line);border-radius:12px;background:var(--white)}
+tfoot td{background:var(--soft);font-weight:800}
+td input{width:76px;padding:9px 8px;border:1px solid var(--line);border-radius:9px;background:var(--white);text-align:right;outline:none}
+td input.price{width:84px}
+.warn{color:var(--red);font-weight:800}
+.ok{color:var(--green);font-weight:800}
+.edit-actions{display:flex;gap:10px;justify-content:space-between;flex-wrap:wrap;margin-top:6px}
+
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;margin:14px 0}
+.card{background:var(--white);border:1px solid var(--line);border-radius:14px;padding:14px 16px}
+.card .k{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);font-weight:800}
+.card .v{font-family:'Josefin Sans';font-size:26px;font-weight:600;margin-top:4px}
+.card.hl{background:var(--brown);border-color:var(--brown);color:#fff}.card.hl .k{color:#f1e3d8}
+
+.stamps{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:14px}
+.stampbtn{border:2px solid var(--line);background:var(--white);border-radius:12px;padding:11px 6px;font-weight:800;cursor:pointer;font-size:15px}
+.stampbtn.active{border-color:var(--ink);background:var(--ink);color:#fff}
+.stampbtn small{display:block;font-weight:600;font-size:12px;opacity:.75}
+.st{display:inline-block;font-size:10px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;padding:2px 6px;border-radius:6px;vertical-align:middle;margin-left:4px}
+.st.S{background:#2E231C;color:#fff}.st.N{background:#efe6dc;color:var(--brown-d)}.st.mix{background:#f6e3c9;color:#8a5a1f}
+.split{font-size:12px;color:var(--muted);font-weight:600;white-space:nowrap}
+.fmtgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px;margin-top:14px}
+.fmtbtn{border:2px solid var(--line);background:var(--white);border-radius:12px;padding:10px 8px;cursor:pointer;text-align:center}
+.fmtbtn b{display:block;font-size:16px}.fmtbtn span{font-size:12px;color:var(--muted);font-weight:700}
+.fmtbtn.active{border-color:var(--brown);box-shadow:0 0 0 1px var(--brown) inset;background:#fbf3ec}
+.fmtrow{display:grid;grid-template-columns:1fr 130px 44px;gap:8px;margin-bottom:8px}
+.fmtrow input{padding:11px 12px;border:1px solid var(--line);border-radius:10px;background:var(--white);outline:none}
+.sugg{display:flex;gap:6px;flex-wrap:wrap;margin:4px 0 12px}
+.sugg button{border:1px dashed var(--brown);background:none;color:var(--brown);border-radius:999px;padding:5px 11px;font-size:13px;font-weight:700;cursor:pointer}
+.stk{display:flex;gap:8px;align-items:stretch}
+.sb{min-width:96px;border-radius:10px;padding:6px 10px;text-align:right;border:1px solid var(--line);background:var(--soft)}
+.sb span{display:block;font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.sb b{font-family:'Josefin Sans';font-size:22px;font-weight:600}
+.sb.S{background:#2E231C;border-color:#2E231C;color:#fff}.sb.S span{color:#d9cabd}
+.sb.zero b{opacity:.35}
+.sb.T{background:transparent;border-color:transparent;min-width:70px}
+@media(max-width:640px){.row{grid-template-columns:1fr}.stk{justify-content:flex-start}.sb{min-width:0;flex:1}}
+.subtabs{display:flex;gap:6px;margin:16px 0 0;border-bottom:1px solid var(--line)}
+.subtabs button{border:0;background:none;padding:10px 14px;font-weight:800;color:var(--muted);border-bottom:3px solid transparent;cursor:pointer}
+.subtabs button.active{color:var(--ink);border-color:var(--brown)}
+.lrow{display:grid;grid-template-columns:1fr 80px 100px 100px 1fr 40px;gap:6px;margin-bottom:6px}
+.lrow.pk{grid-template-columns:1fr 80px 1fr 40px}
+.lrow input{padding:10px;border:1px solid var(--line);border-radius:9px;background:var(--white);outline:none;min-width:0}
+.lhead{font-size:11px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+@media(max-width:640px){.lrow{grid-template-columns:1fr 60px 70px 70px 40px}.lrow .optional{display:none}.lrow.pk{grid-template-columns:1fr 60px 40px}}
+.pickbtn{border:1px dashed var(--brown);background:var(--white);border-radius:9px;padding:6px 9px;font-size:12px;font-weight:700;text-align:right;cursor:pointer;min-width:130px;line-height:1.4;color:var(--ink)}
+.pickbtn.warn{border-color:var(--red);color:var(--red)}.pickbtn.open{border-style:solid;background:#fbf3ec}
+.pickrow td{background:#fbf6f1}
+.pickgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:8px;padding:4px 0}
+.pickgrid label{background:var(--white);border:1px solid var(--line);border-radius:10px;padding:8px 10px;display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:13px;font-weight:700}
+.pickgrid label.S{border-left:4px solid var(--ink)}.pickgrid label.N{border-left:4px solid #d9c4b1}
+.pickgrid small{display:block;color:var(--muted);font-weight:600}
+/* Events */
+.ev-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px}
+.ev-card{background:var(--white);border:1px solid var(--line);border-radius:14px;padding:16px;cursor:pointer}
+.ev-card .t{font-family:'Josefin Sans';font-size:19px;font-weight:600}
+.badge{display:inline-block;font-size:11px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;padding:4px 9px;border-radius:999px}
+.badge.planning{background:#efe6dc;color:var(--brown-d)}
+.badge.out{background:#fbe6d4;color:#a65a1c}
+.badge.closed{background:#e3eedf;color:var(--green)}
+.steps{display:flex;gap:6px;margin:16px 0 4px;flex-wrap:wrap}
+.step{flex:1;min-width:150px;padding:10px 12px;border-radius:12px;border:1px solid var(--line);background:var(--white);font-size:13px;font-weight:700;color:var(--muted)}
+.step b{display:block;font-family:'Josefin Sans';font-size:11px;letter-spacing:.16em;text-transform:uppercase}
+.step.cur{border-color:var(--brown);color:var(--ink);box-shadow:0 0 0 1px var(--brown) inset}
+.step.done{color:var(--green)}
+.sec{margin-top:20px}
+.locline{border:1px solid var(--line);border-radius:6px;background:var(--white);font-size:12px;padding:1px 4px;color:var(--muted)}
+.addline{display:grid;grid-template-columns:1fr 150px 100px auto;gap:8px;margin-top:10px}
+@media(max-width:640px){.addline{grid-template-columns:1fr 1fr}}
+.addline input,.addline select{padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:var(--white);outline:none}
+.actions{display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end;margin-top:14px}
+.help{background:var(--white);border:1px dashed var(--line);border-radius:12px;padding:10px 14px;font-size:13px;color:var(--muted);margin:10px 0}
+
+.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%) translateY(120px);background:var(--ink);color:#fff;padding:12px 20px;border-radius:12px;font-weight:700;transition:transform .25s;z-index:99}
+.toast.show{transform:translateX(-50%) translateY(0)}
+.banner{background:#fff3e8;border:1px solid #e7c9a9;color:#7a4a1f;padding:12px 16px;border-radius:12px;margin-bottom:14px;font-size:14px;display:none}
+.namechip{display:inline-flex;align-items:center;gap:6px;background:var(--white);border:1px solid var(--line);border-radius:999px;padding:7px 8px 7px 14px;margin:0 6px 8px 0;font-weight:700}
+.namechip button{border:0;background:#f1e9e1;border-radius:50%;width:24px;height:24px;cursor:pointer;color:var(--red);font-weight:800}
+@media(max-width:640px){header{grid-template-columns:auto 1fr auto;padding:10px 14px}header h1{font-size:15px;letter-spacing:.18em}.logo img{height:22px}.counter b{font-size:20px}main,nav{padding-left:14px;padding-right:14px}.sheet{padding:16px 14px 30px}}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <img id="logoImg" src="data:image/png;base64,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" alt="Traiteur Beatrice">
+  </div>
+  <h1>BAR INVENTORY</h1>
+  <div class="counter"><b id="cnt">—</b><span class="sync" id="sync"></span><span id="cntLabel">items in stock</span></div>
+</header>
+
+<nav>
+  <button class="active" data-tab="items">Items</button>
+  <button data-tab="events">Events</button>
+  <button data-tab="history">History</button>
+  <button data-tab="settings">Settings</button>
+</nav>
+
+<main>
+  <div class="banner" id="banner"></div>
+
+  <section class="view active" id="v-items">
+    <div class="toolbar">
+      <input class="search" id="q" type="search" placeholder="Search an item, category or location…" autocomplete="off">
+      <button class="btn ghost" id="newItemBtn">+ New item</button>
+    </div>
+    <div class="chips" id="locChips"></div>
+    <div id="valueCards"></div>
+    <div id="itemList"><div class="empty">Loading…</div></div>
+  </section>
+
+  <section class="view" id="v-events">
+    <div class="toolbar">
+      <input class="search" id="eq" type="search" placeholder="Search an event…" autocomplete="off">
+      <button class="btn" id="newEventBtn">+ New event</button>
+    </div>
+    <div class="chips" id="evChips"></div>
+    <div id="eventList"></div>
+  </section>
+
+  <section class="view" id="v-history">
+    <div class="toolbar">
+      <input class="search" id="hq" type="search" placeholder="Search item, person, note…" autocomplete="off">
+      <select class="search" id="hEvent" style="flex:0 1 260px"><option value="">All events</option></select>
+      <button class="btn ghost" id="csvBtn">Export CSV</button>
+    </div>
+    <div class="tablewrap"><table>
+      <thead><tr><th>Date</th><th>Item</th><th>Event</th><th>By</th><th>Movement</th><th>Total after</th><th></th></tr></thead>
+      <tbody id="hBody"></tbody>
+    </table></div>
+  </section>
+
+  <section class="view" id="v-settings">
+    <div class="group">
+      <h3>Staff names ("By" list)</h3>
+      <div id="names"></div>
+      <div class="toolbar" style="margin-top:6px">
+        <input class="search" id="newName" placeholder="Add a name…" style="max-width:320px">
+        <button class="btn" id="addNameBtn">Add</button>
+      </div>
+    </div>
+    <div class="group">
+      <h3>Basic bar list — starting list for every new event</h3>
+      <div id="tplList"></div>
+      <div class="addline" style="max-width:720px"><input id="tplItem" list="itemNames" placeholder="Add an item…" autocomplete="off"><select id="tplFmt"><option value="">Format</option></select><span></span><button class="btn" id="tplAdd">Add</button></div>
+    </div>
+    <div class="group">
+      <h3>Default mixers list & bar pack list (one per line)</h3>
+      <div class="grid2"><textarea id="tplMix" class="search" rows="10" style="min-width:0"></textarea><textarea id="tplPack" class="search" rows="10" style="min-width:0"></textarea></div>
+      <div class="toolbar" style="margin-top:8px"><button class="btn" id="tplListsSave">Save lists</button></div>
+    </div>
+    <div class="group">
+      <h3>Drink parameters (mixer cost)</h3>
+      <div class="toolbar"><label class="sub">Oz of alcohol per drink <input class="search" id="pOz" inputmode="decimal" style="max-width:110px;min-width:0"></label>
+        <label class="sub">Mixer cost per drink ($) <input class="search" id="pMix" inputmode="decimal" style="max-width:110px;min-width:0"></label>
+        <button class="btn" id="pSave">Save</button></div>
+    </div>
+    <div class="group">
+      <h3>Prices & taxes</h3>
+      <p class="sub">Enter SAQ prices <b>with taxes included</b>. Event cost used is shown <b>before taxes</b> (SAQ price ÷ 1.14975 = TPS 5% + TVQ 9.975%). Shopping lists and SAQ returns stay in tax-included dollars.</p>
+    </div>
+    <div class="group">
+      <h3>Locations</h3>
+      <p class="sub" id="locList"></p>
+    </div>
+    <div class="group" id="localTools" style="display:none">
+      <h3>Test mode</h3>
+      <p class="sub">Data is saved on this device only until Firebase is connected.</p>
+      <button class="btn danger" id="resetBtn">Reset all test data</button>
+    </div>
+  </section>
+</main>
+
+<div class="overlay" id="ov"><div class="sheet" id="sheet"></div></div>
+<datalist id="itemNames"></datalist>
+<div class="toast" id="toast"></div>
+
+<script type="module">
+/* =====================================================================
+   FIREBASE CONFIG — leave "PASTE_HERE" to run in TEST MODE (data saved on
+   this device only). Paste the real config to switch to live Firestore.
+   Collections used: bar_items, bar_movements, bar_events, bar_meta.
+   ===================================================================== */
+const firebaseConfig = {
+  apiKey: "PASTE_HERE",
+  authDomain: "PASTE_HERE.firebaseapp.com",
+  projectId: "PASTE_HERE",
+  storageBucket: "PASTE_HERE.appspot.com",
+  messagingSenderId: "PASTE_HERE",
+  appId: "PASTE_HERE"
+};
+const LOCAL = firebaseConfig.apiKey === "PASTE_HERE";
+
+const C = { items: "bar_items", moves: "bar_movements", events: "bar_events", meta: "bar_meta" };
+const LOCATIONS = ["Alcohol Fridge", "Office Shelf", "Estelle"];
+const CATEGORIES = ["White Wine","Red Wine","Rosé","Sparkling & Champagne","Beer","Vodka","Gin","Rum","Whisky & Scotch","Tequila","Cognac & Brandy","Liqueurs & Aperitifs","Other"];
+const DEFAULT_NAMES = ["Adam"];
+/* Prices are entered as SAQ prices (TPS 5% + TVQ 9.975% INCLUDED).
+   Cost used is always calculated BEFORE taxes: price ÷ 1.14975. */
+const TAX = 1.14975;
+const OZ_ML = 29.5735;
+const mlOf = f => { const m = String(f).match(/([\d.]+)\s*(ml|l)\b/i); return !m ? 0 : m[2].toLowerCase() === "l" ? +m[1] * 1000 : +m[1]; };
+const TYPES = [["Wine", ["White Wine", "Red Wine", "Rosé"]], ["Champagne & Sparkling", ["Sparkling & Champagne"]], ["Beer", ["Beer"]],
+  ["Spirits", ["Vodka", "Gin", "Rum", "Whisky & Scotch", "Tequila", "Cognac & Brandy"]], ["Liqueurs & Aperitifs", ["Liqueurs & Aperitifs"]], ["Other", ["Other"]]];
+const typeOf = cat => (TYPES.find(([, c]) => c.includes(cat)) || ["Other"])[0];
+/* Mixers: every ounce of spirits/liqueurs used = drinks of 1.5 oz, each with a mixer cost */
+const MIXER_CATS = ["Vodka", "Gin", "Rum", "Whisky & Scotch", "Tequila", "Cognac & Brandy", "Liqueurs & Aperitifs"];
+let params = { ozPerDrink: 1.5, mixerPerDrink: 0.70 };
+let templates = null;   // set from settings, else DEFAULT_BASIC
+const DEFAULT_MIXERS = ["Soda water", "Tonic water", "Ginger ale", "Coca-Cola", "Diet Coke", "Sprite / 7Up", "Cranberry juice", "Orange juice",
+  "Pineapple juice", "Lime juice", "Lemon juice", "Simple syrup", "Grenadine", "Angostura bitters", "Limes", "Lemons", "Oranges", "Olives",
+  "Sparkling water (San Benedetto)", "Still water (San Benedetto)", "Ice (bags)"];
+const DEFAULT_PACK = ["Shakers", "Jiggers", "Bar spoons", "Hawthorne strainers", "Fine strainers", "Muddlers", "Ice buckets", "Ice scoops",
+  "Bottle openers", "Wine keys", "Pour spouts", "Cutting boards", "Bar knives", "Garnish trays", "Bar mats", "Bar towels", "Cocktail napkins",
+  "Straws", "Cocktail picks", "Wine glasses", "Champagne flutes", "Highball glasses", "Rocks glasses", "Coupes / martini glasses", "Coolers",
+  "Garbage bags", "Recycling bins", "Tablecloths", "Bar menu / signage", "Card reader / float"];
+const mixerList = () => templates?.["Mixers"] || DEFAULT_MIXERS;
+const packTpl = () => templates?.["Bar pack list"] || DEFAULT_PACK;
+let evTab = "alcohol";
+const basicList = () => templates?.["Basic bar"] || DEFAULT_BASIC.map(([name, format]) => ({ name, format }));
+const STAMP = { S: "Stamped", N: "Not stamped", mix: "Mix" };
+const stTag = k => `<span class="st ${k}">${k === "S" ? "Stamped" : k === "N" ? "Not stamped" : "Mix"}</span>`;
+const F = "Alcohol Fridge", S = "Office Shelf";
+const SPIRIT = ["750ml", "1.14L"], W = ["750ml"], BEER = ["Can 355ml", "Can 473ml", "Bottle 355ml"];
+const P = (fmts, prices = {}) => ({ formats: fmts, prices });
+const SEED = [
+ // [name, category, location, unit, {formats, prices per format}]
+ ["Santa Margherita Pinot Grigio","White Wine",F,"btl",P(W,{"750ml":22.5})],
+ ["Carpineto Farnito Toscana","White Wine",F,"btl",P(W,{"750ml":28.8})],
+ ["Folonari Pinot Grigio delle Venezie","White Wine",F,"btl",P(W,{"750ml":14.95})],
+ ["Moillard Chablis Coquillage","White Wine",F,"btl",P(W,{"750ml":32})],
+ ["Château de Sancerre","White Wine",F,"btl",P(W,{"750ml":37.75})],
+ ["Sancerre Domaine Michel Vattan","White Wine",F,"btl",P(W)],
+ ["Leitz Riesling 0%","White Wine",F,"btl",P(W,{"750ml":14.75})],
+ ["Nipozzano Chianti","Red Wine",F,"btl",P(W,{"750ml":25.5})],
+ ["Santa Cristina Toscana","Red Wine",F,"btl",P(W,{"750ml":16.85})],
+ ["Cuvée du Chat","Red Wine",F,"btl",P(W,{"750ml":26.85})],
+ ["Fontanafredda Barolo","Red Wine",F,"btl",P(W,{"750ml":34.05})],
+ ["Angra Pinot Noir","Red Wine",F,"btl",P(W)],
+ ["Brunello di Montalcino","Red Wine",F,"btl",P(W,{"750ml":56.75})],
+ ["Masi Campofiorin","Red Wine",F,"btl",P(W,{"750ml":24.95})],
+ ["Altitude","Red Wine",F,"btl",P(W)],
+ ["Côteaux d'Aix en Provence","Rosé",F,"btl",P(W)],
+ ["Whispering Angel","Rosé",F,"btl",P(W)],
+ ["FIOL Prosecco","Sparkling & Champagne",F,"btl",P(W,{"750ml":18.95})],
+ ["Zonin Prosecco","Sparkling & Champagne",F,"btl",P(["200ml"],{"200ml":6})],
+ ["Santa Margherita Prosecco (Valdobbiadene)","Sparkling & Champagne",F,"btl",P(W,{"750ml":24.8})],
+ ["Dominio de la Vega Cava","Sparkling & Champagne",F,"btl",P(W)],
+ ["Laurent-Perrier Brut","Sparkling & Champagne",F,"btl",P(W,{"750ml":83.25})],
+ ["Louis Roederer","Sparkling & Champagne",F,"btl",P(W,{"750ml":98.75})],
+ ["Moët & Chandon","Sparkling & Champagne",F,"btl",P(W,{"750ml":82.0})],
+ ["Bollinger Special Cuvée","Sparkling & Champagne",F,"btl",P(W)],
+ ["Heineken","Beer",F,"unit",P(BEER,{"Can 355ml":3.15,"Bottle 355ml":3.15})],
+ ["Heineken 0%","Beer",F,"unit",P(BEER,{"Can 355ml":2.77,"Bottle 355ml":2.77})],
+ ["Moretti","Beer",F,"unit",P(BEER,{"Can 355ml":3.15,"Bottle 355ml":3.15})],
+ ["Peroni","Beer",F,"unit",P(BEER,{"Can 355ml":3.15,"Bottle 355ml":3.15})],
+ ["Peroni 0%","Beer",F,"unit",P(BEER,{"Bottle 355ml":2.85,"Can 355ml":2.85})],
+ ["Stella Artois","Beer",F,"unit",P(BEER,{"Can 355ml":3.15,"Bottle 355ml":3.15})],
+ ["Corona","Beer",F,"unit",P(BEER,{"Can 355ml":3.15,"Bottle 355ml":3.15})],
+ ["Corona 0%","Beer",F,"unit",P(BEER,{"Can 355ml":3.15,"Bottle 355ml":3.15})],
+ ["Guinness","Beer",F,"unit",P(BEER)],
+ ["Hazy IPA (microbrewery)","Beer",F,"unit",P(BEER)],
+ ["Molson Export","Beer",F,"unit",P(BEER)],
+ ["Coors Light","Beer",F,"unit",P(BEER)],
+ ["Grey Goose","Vodka",S,"btl",P(SPIRIT,{"750ml":54.75})],
+ ["Belvedere","Vodka",S,"btl",P(SPIRIT,{"750ml":57.5})],
+ ["Ketel One","Vodka",S,"btl",P(SPIRIT,{"750ml":27.75,"1.14L":35.5})],
+ ["Tito's","Vodka",S,"btl",P(SPIRIT,{"750ml":39.25})],
+ ["Bombay","Gin",S,"btl",P(SPIRIT,{"750ml":32.75,"1.14L":47})],
+ ["Hendrick's","Gin",S,"btl",P(SPIRIT,{"750ml":56.5})],
+ ["Botanist","Gin",S,"btl",P(SPIRIT,{"750ml":54.75})],
+ ["Empress 1908","Gin",S,"btl",P(SPIRIT,{"750ml":51.75})],
+ ["Bleu Royal","Gin",S,"btl",P(SPIRIT,{"750ml":51.5})],
+ ["Menaud Gin","Gin",S,"btl",P(SPIRIT,{"750ml":71.0})],
+ ["Tanqueray","Gin",S,"btl",P(SPIRIT)],
+ ["Bacardi White","Rum",S,"btl",P(SPIRIT,{"750ml":28.25,"1.14L":40.0})],
+ ["Bacardi Gold","Rum",S,"btl",P(SPIRIT,{"750ml":31,"1.14L":44.25})],
+ ["Appleton","Rum",S,"btl",P(SPIRIT,{"1.14L":44.5})],
+ ["Appleton 12 yrs","Rum",S,"btl",P(W,{"750ml":52.0})],
+ ["Coconut Rum","Rum",S,"btl",P(SPIRIT,{"750ml":36.5})],
+ ["Ron Zacapa Centenario","Rum",S,"btl",P(W)],
+ ["Chivas 12 yrs","Whisky & Scotch",S,"btl",P(SPIRIT,{"750ml":65,"1.14L":91.5})],
+ ["Glenlivet 12 yrs","Whisky & Scotch",S,"btl",P(SPIRIT,{"750ml":80.75})],
+ ["Glenfiddich 12 yrs","Whisky & Scotch",S,"btl",P(SPIRIT,{"750ml":82.75})],
+ ["Glenmorangie 10 yrs","Whisky & Scotch",S,"btl",P(W,{"750ml":75.25})],
+ ["Johnnie Walker Black","Whisky & Scotch",S,"btl",P(SPIRIT,{"750ml":90.25,"1.14L":91.75})],
+ ["Johnnie Walker Blue","Whisky & Scotch",S,"btl",P(W)],
+ ["Macallan 12 Double Cask","Whisky & Scotch",S,"btl",P(W,{"750ml":150.25})],
+ ["Jameson","Whisky & Scotch",S,"btl",P(SPIRIT,{"750ml":40.75,"1.14L":58.0})],
+ ["Canadian Club Rye","Whisky & Scotch",S,"btl",P(SPIRIT,{"750ml":30.5})],
+ ["Canadian Club (Classic)","Whisky & Scotch",S,"btl",P(SPIRIT,{"750ml":36.0})],
+ ["Crown Royal","Whisky & Scotch",S,"btl",P(SPIRIT,{"750ml":30.75})],
+ ["Maker's Mark","Whisky & Scotch",S,"btl",P(SPIRIT,{"750ml":47.75})],
+ ["Cazadores Blanco","Tequila",S,"btl",P(SPIRIT,{"750ml":43.5})],
+ ["Cazadores Reposado","Tequila",S,"btl",P(SPIRIT,{"750ml":45.5})],
+ ["1800 Reposado","Tequila",S,"btl",P(SPIRIT,{"750ml":47.25})],
+ ["Jose Cuervo","Tequila",S,"btl",P(SPIRIT,{"750ml":41.25})],
+ ["Patrón","Tequila",S,"btl",P(W,{"750ml":87.25})],
+ ["Casamigos Blanco","Tequila",S,"btl",P(W,{"750ml":75.0})],
+ ["Casamigos Reposado","Tequila",S,"btl",P(W,{"750ml":85.0})],
+ ["Teremana Blanco","Tequila",S,"btl",P(W,{"750ml":62.0})],
+ ["Teremana Reposado","Tequila",S,"btl",P(W)],
+ ["Don Julio Añejo","Tequila",S,"btl",P(W)],
+ ["Courvoisier XO","Cognac & Brandy",S,"btl",P(W,{"750ml":103})],
+ ["Rémy Martin VSOP","Cognac & Brandy",S,"btl",P(W,{"750ml":58.75})],
+ ["D'Ussé VSOP","Cognac & Brandy",S,"btl",P(W)],
+ ["Hennessy VS","Cognac & Brandy",S,"btl",P(W)],
+ ["Chemineaud","Cognac & Brandy",S,"btl",P(W,{"750ml":32.5})],
+ ["El Gobernador Pisco","Cognac & Brandy",S,"btl",P(["700ml"],{"700ml":41.0})],
+ ["Aperol","Liqueurs & Aperitifs",S,"btl",P(W,{"750ml":26.6})],
+ ["Campari","Liqueurs & Aperitifs",S,"btl",P(W,{"750ml":35.25})],
+ ["St-Germain","Liqueurs & Aperitifs",S,"btl",P(W,{"750ml":46.75})],
+ ["Cointreau","Liqueurs & Aperitifs",S,"btl",P(["500ml","750ml"],{"750ml":46.75})],
+ ["Vermouth Dry","Liqueurs & Aperitifs",S,"btl",P(["1L"],{"1L":16.95})],
+ ["Martini Rosso (Vermouth)","Liqueurs & Aperitifs",S,"btl",P(["1L"],{"1L":16.95})],
+ ["Martini Bianco","Liqueurs & Aperitifs",S,"btl",P(["1L"],{"1L":16.95})],
+ ["Kahlua","Liqueurs & Aperitifs",S,"btl",P(W,{"750ml":33})],
+ ["Baileys","Liqueurs & Aperitifs",S,"btl",P(W,{"750ml":34.25})],
+ ["Amaretto","Liqueurs & Aperitifs",S,"btl",P(W,{"750ml":35})],
+ ["Grand Marnier","Liqueurs & Aperitifs",S,"btl",P(SPIRIT,{"750ml":56.5,"1.14L":76.25})],
+ ["Chambord","Liqueurs & Aperitifs",S,"btl",P(W,{"750ml":47.75})],
+ ["Limoncello","Liqueurs & Aperitifs",S,"btl",P(W,{"750ml":28.65})],
+ ["Galliano Vanilla","Liqueurs & Aperitifs",S,"btl",P(["500ml"],{"500ml":24.4})],
+ ["Grappa Bassano","Liqueurs & Aperitifs",S,"btl",P(["500ml"],{"500ml":31.25})],
+ ["Pimm's","Liqueurs & Aperitifs",S,"btl",P(W,{"750ml":32})],
+ ["Cassis Lejay","Liqueurs & Aperitifs",S,"btl",P(W,{"750ml":35.75})],
+ ["Crème de Banane (Marie Brizard)","Liqueurs & Aperitifs",S,"btl",P(W,{"750ml":24.15})],
+ ["Pineau des Charentes Reynac","Liqueurs & Aperitifs",S,"btl",P(W,{"750ml":23.7})],
+ ["Coffee Liqueur (Barista)","Liqueurs & Aperitifs",S,"btl",P(W,{"750ml":37.5})],
+ ["Licor 43","Liqueurs & Aperitifs",S,"btl",P(W,{"750ml":35.5})],
+ ["Peach Schnapps (De Kuyper)","Liqueurs & Aperitifs",S,"btl",P(SPIRIT,{"1.14L":34.75})],
+ ["Fireball","Liqueurs & Aperitifs",S,"btl",P(W)],
+ ["Amaro Nonino Quintessentia","Liqueurs & Aperitifs",S,"btl",P(W,{"750ml":55.25})],
+ ["Noroi Aperitivo Zero","Liqueurs & Aperitifs",S,"btl",P(W,{"750ml":29.95})],
+ ["Amarula Cream","Liqueurs & Aperitifs",S,"btl",P(SPIRIT,{"1.14L":43.75})],
+ ["Triple Sec (Meaghers)","Liqueurs & Aperitifs",S,"btl",P(W,{"750ml":30.25})],
+ ["Ice Cider","Other",F,"btl",P(["375ml"],{"375ml":27})],
+ ["Apple Cider","Other",F,"btl",P(["750ml","500ml"])],
+ ["Torres Natureo 0%","Other",F,"btl",P(W,{"750ml":11.5})],
+ ["Pur Baume (sapin liqueur)","Liqueurs & Aperitifs",F,"btl",P(["500ml"],{"500ml":37.75})],
+ ["Red Bull","Other",S,"unit",P(["Can 250ml"])]
+];
+
+/* Starting stock — physical count of Nov 19, 2026 (count sheets) + Estelle stamped stock ("Dec 4 - Imp T" sheet).
+   [item name, format, stamp S/N, location, quantity] */
+const COUNT_DATE = new Date("2026-11-19T15:00:00").getTime();
+const E = "Estelle";
+const INITIAL = [
+ ["Santa Margherita Pinot Grigio","750ml","S",F,1],["Château de Sancerre","750ml","N",F,2],["Nipozzano Chianti","750ml","S",F,2],
+ ["Cuvée du Chat","750ml","N",F,12],["Fontanafredda Barolo","750ml","S",F,16],["Brunello di Montalcino","750ml","S",F,5],
+ ["Zonin Prosecco","200ml","S",F,1],["Santa Margherita Prosecco (Valdobbiadene)","750ml","S",F,10],["Santa Margherita Prosecco (Valdobbiadene)","750ml","N",F,1],
+ ["Laurent-Perrier Brut","750ml","N",F,1],["Louis Roederer","750ml","S",F,6],["Moët & Chandon","750ml","S",F,6],["Torres Natureo 0%","750ml","N",F,3],
+ ["Ice Cider","375ml","N",F,2],["Apple Cider","500ml","N",F,1],["Pur Baume (sapin liqueur)","500ml","N",F,1],
+ ["Leitz Riesling 0%","750ml","N",F,6],["Masi Campofiorin","750ml","N",F,7],
+ ["Grey Goose","750ml","N",S,1.75],["Belvedere","750ml","N",S,1.75],["Bombay","750ml","S",S,0.65],["Bombay","1.14L","N",S,6],
+ ["Hendrick's","750ml","S",S,1],["Hendrick's","750ml","N",S,2.1],["Botanist","750ml","S",S,1.1],["Empress 1908","750ml","S",S,2],["Menaud Gin","750ml","S",S,1.45],
+ ["Bacardi White","750ml","S",S,0.2],["Bacardi Gold","1.14L","N",S,0.8],["Appleton 12 yrs","750ml","N",S,1],["Appleton","1.14L","N",S,0.4],["Coconut Rum","750ml","N",S,1.5],
+ ["Chivas 12 yrs","750ml","S",S,0.65],["Glenlivet 12 yrs","750ml","N",S,1.65],["Johnnie Walker Black","1.14L","N",S,0.4],["Macallan 12 Double Cask","750ml","N",S,1.65],
+ ["Canadian Club Rye","750ml","N",S,1],["Crown Royal","750ml","N",S,0.5],["Canadian Club (Classic)","750ml","N",S,1.15],
+ ["Cazadores Reposado","750ml","N",S,3.7],["1800 Reposado","750ml","N",S,0.35],["Casamigos Blanco","750ml","N",S,2],["Casamigos Reposado","750ml","S",S,1],
+ ["Casamigos Reposado","750ml","N",S,1],["Teremana Blanco","750ml","N",S,0.6],["El Gobernador Pisco","700ml","N",S,0.1],
+ ["Rémy Martin VSOP","750ml","N",S,1],["Grand Marnier","1.14L","S",S,0.95],["Chemineaud","750ml","S",S,1],
+ ["Aperol","750ml","S",S,1],["Aperol","750ml","N",S,1.9],["Campari","750ml","S",S,1],["Campari","750ml","N",S,2.75],["St-Germain","750ml","S",S,4],["St-Germain","750ml","N",S,2],
+ ["Cointreau","750ml","N",S,1.4],["Noroi Aperitivo Zero","750ml","N",S,2.1],["Martini Rosso (Vermouth)","1L","N",S,2],["Kahlua","750ml","S",S,0.7],["Kahlua","750ml","N",S,1],
+ ["Amaretto","750ml","N",S,0.95],["Chambord","750ml","S",S,1],["Galliano Vanilla","500ml","N",S,1.35],["Pimm's","750ml","N",S,2.7],
+ ["Cassis Lejay","750ml","N",S,1],["Crème de Banane (Marie Brizard)","750ml","N",S,0.85],["Pineau des Charentes Reynac","750ml","N",S,2.1],
+ ["Coffee Liqueur (Barista)","750ml","N",S,0.15],["Licor 43","750ml","N",S,4.2],["Peach Schnapps (De Kuyper)","1.14L","S",S,1.1],["Amaro Nonino Quintessentia","750ml","N",S,0.35],["Amarula Cream","1.14L","S",S,1],
+ ["Triple Sec (Meaghers)","750ml","S",S,1],["Triple Sec (Meaghers)","750ml","N",S,1],
+ ["Ketel One","1.14L","S",E,1],["Grey Goose","750ml","S",E,2],["Bombay","750ml","S",E,4],["Hendrick's","750ml","S",E,2],["Chivas 12 yrs","750ml","S",E,2],
+ ["Chivas 12 yrs","1.14L","S",E,1],["Jameson","1.14L","S",E,1],["Glenlivet 12 yrs","750ml","S",E,1],["Canadian Club Rye","750ml","S",E,1],
+ ["Bacardi White","750ml","S",E,2],["Bacardi White","1.14L","S",E,2],["Bacardi Gold","750ml","S",E,1],["Cazadores Blanco","750ml","S",E,3.9],
+ ["Cazadores Reposado","750ml","S",E,1],["Aperol","750ml","S",E,1],["Campari","750ml","S",E,1],["Cointreau","750ml","S",E,4],
+ ["Vermouth Dry","1L","S",E,1.9],["Martini Rosso (Vermouth)","1L","S",E,0.85],["Santa Margherita Prosecco (Valdobbiadene)","750ml","S",E,13],
+ ["Santa Margherita Pinot Grigio","750ml","S",E,24],["Nipozzano Chianti","750ml","S",E,12],
+ ["Heineken","Bottle 355ml","S",E,16],["Moretti","Bottle 355ml","S",E,21],["Peroni 0%","Bottle 355ml","S",E,38]
+];
+
+/* Default locations: wines & prosecco (and Pineau, Chemineaud, Natureo) on the Office Shelf; everything else in the Alcohol Fridge.
+   Estelle stock stays at Estelle. */
+const WINE_CATS = ["White Wine", "Red Wine", "Rosé", "Sparkling & Champagne"];
+const SHELF_EXTRA = ["Pineau des Charentes Reynac", "Chemineaud", "Torres Natureo 0%"];
+const defLoc = (cat, name) => WINE_CATS.includes(cat) || SHELF_EXTRA.includes(name) ? "Office Shelf" : "Alcohol Fridge";
+SEED.forEach(r => { r[2] = defLoc(r[1], r[0]); });
+const CAT_OF = Object.fromEntries(SEED.map(r => [r[0], r[1]]));
+INITIAL.forEach(r => { if (r[3] !== E) r[3] = defLoc(CAT_OF[r[0]], r[0]); });
+
+/* Basic bar list (from the BGO menu) — starting list for every new event, editable in Settings */
+const DEFAULT_BASIC = [
+ ["Santa Margherita Pinot Grigio","750ml"],["Nipozzano Chianti","750ml"],
+ ["Moretti","Bottle 355ml"],["Heineken","Bottle 355ml"],["Peroni 0%","Bottle 355ml"],
+ ["Ketel One","1.14L"],["Grey Goose","750ml"],["Bombay","750ml"],["Hendrick's","750ml"],
+ ["Chivas 12 yrs","750ml"],["Jameson","1.14L"],["Canadian Club Rye","750ml"],["Glenlivet 12 yrs","750ml"],
+ ["Bacardi White","750ml"],["Bacardi Gold","750ml"],["Cazadores Blanco","750ml"],["Cazadores Reposado","750ml"],
+ ["Aperol","750ml"],["Campari","750ml"],["Cointreau","750ml"],["Vermouth Dry","1L"],["Martini Rosso (Vermouth)","1L"]
+];
+
+/* Reference events. BGO is historical (already reflected in the Nov 19 count → no stock movements). */
+const SEED_EVENTS = [
+ { id: "bgo-2026-11-18", name: "BGO", date: "2026-11-18", client: "Bentall Green Oak", stamp: "S", status: "closed", historical: true,
+   guests: 105, pricePP: 60, extras: [{ label: "San Benedetto water (10 flat + 19 sparkling)", qty: 29, unit: 2.70 }],
+   notes: "Imported from the Excel sheet \"BGO - Nov 18\".",
+   // [name, format, required, from stock, bought, end, SAQ price tax incl.]
+   lines: [
+    ["Grey Goose","750ml",3,0,3,1.6,54.75],["Ketel One","750ml",1,0,1,1,27.75],["Hendrick's","750ml",2,2.5,0,2.15,56.5],
+    ["Bombay","750ml",2,1.85,0,0.65,32.75],["Jameson","1.14L",1,1.35,0,1.3,61.94],["Canadian Club Rye","750ml",1,0.7,0,0.4,30.5],
+    ["Chivas 12 yrs","1.14L",1,0.6,0,0.55,98.80],["Glenlivet 12 yrs","750ml",1,0.9,0,0.9,80.75],["Bacardi White","750ml",1,1.3,0,0.15,28.25],
+    ["Bacardi Gold","1.14L",1,1,0,0.9,47.12],["Cazadores Blanco","750ml",2,2,0,1.7,43.5],["Cazadores Reposado","750ml",2,0,2,1,45.5],
+    ["St-Germain","750ml",5,3,2,3.8,46.75],["Aperol","750ml",2,1.8,0,1.8,26.6],["Campari","750ml",2,1.5,0,1.2,35.25],
+    ["Cointreau","750ml",1,1,0,1,46.75],["Vermouth Dry","1L",1,0.6,0,0.6,""],["Martini Rosso (Vermouth)","1L",1,1,0,0.75,16.95],
+    ["Santa Margherita Pinot Grigio","750ml",30,30,0,19,22.5],["Nipozzano Chianti","750ml",18,18,0,12,25.5],
+    ["Santa Margherita Prosecco (Valdobbiadene)","750ml",19,18,0,13,22.95],
+    ["Moretti","Bottle 355ml",24,17,12,21,3.15],["Heineken","Bottle 355ml",24,0,24,16,3.15],["Peroni 0%","Bottle 355ml",12,20,0,13,2.77]
+   ] },
+ { id: "imperial-tobacco-2026-12-04", name: "Imperial Tobacco", date: "2026-12-04", client: "Imperial Tobacco", stamp: "S", status: "planning",
+   guests: "", pricePP: "", extras: [], notes: "Imported from the Excel sheet \"Dec 4 - Imp T\".",
+   // [name, format, required, SAQ price tax incl.]  — split from stock is calculated from current stamped stock
+   lines: [
+    ["Ketel One","1.14L",12,38],["Grey Goose","750ml",8,54.75],["Bombay","750ml",8,34],["Hendrick's","750ml",6,56.75],
+    ["Chivas 12 yrs","750ml",1,57],["Chivas 12 yrs","1.14L",1,""],["Jameson","1.14L",2,43],["Glenlivet 12 yrs","750ml",4,68.25],
+    ["Canadian Club Rye","750ml",2,28.5],["Bacardi White","750ml",1,28.5],["Bacardi White","1.14L",4,""],["Bacardi Gold","750ml",3,28.5],
+    ["Cazadores Blanco","750ml",10,36],["Cazadores Reposado","750ml",8,38],["Aperol","750ml",3,28.5],["Campari","750ml",2,35.5],
+    ["Cointreau","750ml",6,47.5],["Kahlua","750ml",3,32],["Vermouth Dry","1L",4,16.5],["Martini Rosso (Vermouth)","1L",2,16.5],
+    ["Santa Margherita Prosecco (Valdobbiadene)","750ml",36,24.8],["Santa Margherita Pinot Grigio","750ml",60,22.5],["Nipozzano Chianti","750ml",36,24.75],
+    ["Heineken","Bottle 355ml",72,""],["Moretti","Bottle 355ml",48,""],["Peroni 0%","Bottle 355ml",24,""]
+   ] }
+];
+
+
+/* =====================================================================
+   DATA LAYER — same API for test mode (localStorage) and Firebase
+   ===================================================================== */
+function localStore() {
+  const KEY = "barinv_db_v8";
+  let db; const subs = [];
+  const load = () => { try { db = JSON.parse(localStorage.getItem(KEY)) || {}; } catch { db = {}; } };
+  const persist = () => { try { localStorage.setItem(KEY, JSON.stringify(db)); } catch (e) { toast("Storage full!"); } };
+  const notify = () => subs.forEach(s => s.col ? s.cb(Object.entries(db[s.col] || {}).map(([id, d]) => ({ id, ...d })))
+                                                : s.cb((db[s.dcol] || {})[s.id] || null));
+  load();
+  addEventListener("storage", e => { if (e.key === KEY) { load(); notify(); } });
+  const apply = ops => { for (const o of ops) {
+      const c = (db[o.col] ??= {});
+      if (o.op === "del") delete c[o.id];
+      else c[o.id] = o.merge ? { ...(c[o.id] || {}), ...o.data } : o.data;
+    } persist(); setTimeout(notify, 0); };
+  return {
+    listen(col, cb) { subs.push({ col, cb }); setTimeout(() => cb(Object.entries(db[col] || {}).map(([id, d]) => ({ id, ...d }))), 0); },
+    listenDoc(col, id, cb) { subs.push({ dcol: col, id, cb }); setTimeout(() => cb((db[col] || {})[id] || null), 0); },
+    async get(col, id) { return (db[col] || {})[id] || null; },
+    newId() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 7); },
+    async batch(ops) { apply(ops); },
+    reset() { db = {}; persist(); notify(); }
+  };
+}
+async function fireStore() {
+  const { initializeApp } = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js");
+  const fs = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js");
+  const db = fs.getFirestore(initializeApp(firebaseConfig));
+  return {
+    listen(col, cb) { fs.onSnapshot(fs.collection(db, col), s => { setSync("on"); cb(s.docs.map(d => ({ id: d.id, ...d.data() }))); }, onErr); },
+    listenDoc(col, id, cb) { fs.onSnapshot(fs.doc(db, col, id), d => cb(d.exists() ? d.data() : null), onErr); },
+    async get(col, id) { const d = await fs.getDoc(fs.doc(db, col, id)); return d.exists() ? d.data() : null; },
+    newId() { return fs.doc(fs.collection(db, "_")).id; },
+    async batch(ops) {
+      for (let i = 0; i < ops.length; i += 450) {          // Firestore limit 500 / batch
+        const b = fs.writeBatch(db);
+        for (const o of ops.slice(i, i + 450)) {
+          const ref = fs.doc(db, o.col, o.id);
+          if (o.op === "del") b.delete(ref); else b.set(ref, o.data, o.merge ? { merge: true } : {});
+        }
+        await b.commit();
+      }
+    }
+  };
+}
+let store;
+const put = (col, id, data, merge = false) => store.batch([{ op: "set", col, id, data, merge }]);
+const del = (col, id) => store.batch([{ op: "del", col, id }]);
+
+/* =====================================================================
+   STATE & HELPERS
+   ===================================================================== */
+let items = {}, moves = [], events = {}, names = [...DEFAULT_NAMES], totals = {};
+let fmtSel = null, locSel = null;
+let showEmpty = false;
+let locFilter = "All", evFilter = "Active", stampSel = (() => { try { return localStorage.getItem("barinv_stamp") === "S" ? "S" : "N"; } catch { return "N"; } })();
+let sheetKind = null, currentId = null, mode = "remove", editing = false;
+let evDraft = null, saveTimer = null;
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const r2 = n => Math.round((+n || 0) * 1000) / 1000;
+const fmt = n => String(Math.round((+n || 0) * 100) / 100);
+const money = n => (+n || 0).toLocaleString("en-CA", { style: "currency", currency: "CAD" });
+const num = v => { const n = parseFloat(String(v).replace(",", ".")); return isNaN(n) ? 0 : n; };
+const slug = s => s.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+const toast = m => { const t = $("#toast"); t.textContent = m; t.classList.add("show"); clearTimeout(t._h); t._h = setTimeout(() => t.classList.remove("show"), 2200); };
+const pref = { get: k => { try { return localStorage.getItem("barinv_" + k) || ""; } catch { return ""; } },
+               set: (k, v) => { try { localStorage.setItem("barinv_" + k, v); } catch {} } };
+const dt = ts => new Date(ts).toLocaleString("en-CA", { year: "numeric", month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" });
+const dOnly = s => s ? new Date(s + "T12:00").toLocaleDateString("en-CA", { weekday: "short", year: "numeric", month: "short", day: "numeric" }) : "No date";
+function setSync(s) { $("#sync").className = "sync " + s; }
+function onErr(err) { setSync("err"); const b = $("#banner"); b.style.display = "block";
+  b.innerHTML = "<b>Connection error:</b> " + esc(err.message) + "<br>Check Firestore rules allow read/write on bar_items, bar_movements, bar_events and bar_meta."; }
+
+function movesFor(id) { return moves.filter(m => m.itemId === id).sort((a, b) => a.ts - b.ts); }
+/* Stock is tracked separately for Stamped (S) and Not stamped (N). Count replaces only that stamp's total. */
+/* Stock is tracked per FORMAT (750ml, 1.14L, Can 355ml…) and per STAMP (S = stamped, N = not stamped).
+   Count replaces only the total of that format + stamp. */
+const fmtsOf = it => it?.formats?.length ? it.formats : ["750ml"];
+const priceOf = (it, f) => { const p = it?.prices?.[f]; return p === "" || p == null ? null : +p; };
+const locOf = m => m.location || items[m.itemId]?.location || LOCATIONS[0];
+const keyOf = m => `${m.format || fmtsOf(items[m.itemId])[0]}|${m.stamp === "S" ? "S" : "N"}|${locOf(m)}`;
+function replay(id) {
+  const t = {}; const rows = []; let total = 0;
+  for (const m of movesFor(id)) {
+    const k = keyOf(m), before = t[k] || 0;
+    t[k] = r2(m.type === "add" ? before + m.qty : m.type === "remove" ? before - m.qty : m.qty);
+    total = r2(total + t[k] - before);
+    const [format, stamp, location] = k.split("|");
+    rows.push({ ...m, format, stamp, location, after: total, afterKey: t[k] });
+  }
+  return { total, by: t, rows };
+}
+const recomputeTotals = () => { totals = {}; for (const id in items) { const r = replay(id); totals[id] = { t: r.total, by: r.by }; } };
+/* stock(item, format, stamp, location?) — location omitted = all locations */
+const stock = (id, f, k, loc) => { const by = (totals[id] || {}).by || {}; let s = 0;
+  for (const L of loc ? [loc] : LOCATIONS) s += by[`${f}|${k}|${L}`] || 0; return Math.max(0, r2(s)); };
+const stockLoc = (id, loc) => fmtsOf(items[id]).reduce((a, f) => a + stock(id, f, "S", loc) + stock(id, f, "N", loc), 0);
+const bestLoc = (id, f) => { const it = items[id]; let best = it?.location || LOCATIONS[0], q = -1;
+  for (const L of LOCATIONS) { const v = f ? stock(id, f, "S", L) + stock(id, f, "N", L) : stockLoc(id, L); if (v > q + 1e-9 && (v > 0 || L === best)) { if (v > q) { q = v; best = L; } } }
+  return q > 0 ? best : (it?.location || LOCATIONS[0]); };
+const stockT = id => (totals[id] || {}).t || 0;
+const lineName = l => `${items[l.itemId]?.name || l.name} · ${l.format}`;
+const mvLabel = r => (r.type === "add" ? "+" : r.type === "remove" ? "−" : "= ") + fmt(r.qty);
+const mvCell = r => `${mvLabel(r)} <span class="split">${esc(r.format || "")} · ${esc(locOf(r))}</span> ${stTag(r.stamp === "S" ? "S" : "N")}`;
+const byName = () => { const n = pref.get("by"); return n || names[0] || "—"; };
+const moveOp = (itemId, type, qty, extra = {}) => ({ op: "set", col: C.moves, id: store.newId(),
+  data: { itemId, itemName: items[itemId]?.name || "", type, qty: r2(qty), event: "", by: byName(), note: "", ts: Date.now(), ...extra } });
+
+/* =====================================================================
+   INIT
+   ===================================================================== */
+(async () => {
+  try { store = LOCAL ? localStore() : await fireStore(); }
+  catch (e) { onErr(e); return; }
+  if (LOCAL) {
+    setSync("local"); $("#localTools").style.display = "block";
+    const b = $("#banner"); b.style.display = "block";
+    b.innerHTML = "<b>Test mode</b> — data is saved on this device only. Firebase will be connected when ready.";
+  }
+  await seedIfNeeded();
+  store.listen(C.items, docs => { items = {}; docs.forEach(d => items[d.id] = d); recomputeTotals(); renderAll(); });
+  store.listen(C.moves, docs => { moves = docs; recomputeTotals(); renderAll(); });
+  store.listen(C.events, docs => { events = {}; docs.forEach(d => events[d.id] = d); renderEvents(); refreshSheet(); });
+  store.listenDoc(C.meta, "settings", d => { if (d && Array.isArray(d.names)) names = d.names;
+    if (d?.params) params = { ...params, ...d.params }; if (d?.templates) templates = d.templates; renderSettings(); refreshSheet(); });
+})();
+
+async function seedIfNeeded() {
+  try {
+    if (await store.get(C.meta, "seed")) return;
+    const ops = SEED.map(([name, category, location, unit, p]) =>
+      ({ op: "set", col: C.items, id: slug(name), data: { name, category, location, unit, formats: p.formats, prices: p.prices, createdAt: Date.now() } }));
+    INITIAL.forEach(([name, format, stamp, location, qty], i) => ops.push({ op: "set", col: C.moves, id: "init-" + i, data: {
+      itemId: slug(name), itemName: name, type: "count", qty, format, stamp, location, event: "", by: "Adam", note: "Initial count — Nov 19, 2026", ts: COUNT_DATE + i } }));
+    const initStock = {}; INITIAL.forEach(([n, f, st, loc, q]) => initStock[`${slug(n)}|${f}|${st}|${loc}`] = q);
+    for (const se of SEED_EVENTS) {
+      const lines = se.lines.map(a => {
+        const [name, format] = a, itemId = slug(name), def = SEED.find(r => r[0] === name)?.[4].prices?.[format] ?? "";
+        if (se.historical) { const [, , req, from, buy, end, price] = a;
+          return { itemId, name, format, location: "Estelle", picks: from ? { "Estelle|S": fmt(from) } : {}, required: fmt(req), fromS: fmt(from), fromN: "0", buyS: fmt(buy), buyN: "0", price, endS: fmt(end), endN: "", saq: "" }; }
+        const [, , req, price] = a, picks = {}; let left = req;
+        for (const [L, v] of LOCATIONS.map(L => [L, initStock[`${itemId}|${format}|S|${L}`] || 0]).filter(x => x[1] > 0).sort((x, y) => y[1] - x[1])) {
+          if (left <= 0) break; const take = Math.min(left, v); picks[`${L}|S`] = fmt(take); left = r2(left - take); }
+        return { itemId, name, format, picks, required: fmt(req), fromS: fmt(req - left), fromN: "0", buyS: fmt(left), buyN: "0", price: price === "" ? def : price, endS: "", endN: "", saq: "" };
+      });
+      ops.push({ op: "set", col: C.events, id: se.id, data: { ...se, lines, cocktails: [], createdAt: Date.now(),
+        mixers: se.historical ? [] : DEFAULT_MIXERS.map(name => ({ name, qty: "", unit: "", price: "", note: "" })),
+        packlist: se.historical ? [] : DEFAULT_PACK.map(name => ({ name, qty: "", note: "" })) } });
+    }
+    ops.push({ op: "set", col: C.meta, id: "seed", data: { done: true, at: Date.now(), count: SEED.length } });
+    ops.push({ op: "set", col: C.meta, id: "settings", data: { names: DEFAULT_NAMES }, merge: true });
+    await store.batch(ops);
+  } catch (e) { onErr(e); }
+}
+
+/* =====================================================================
+   RENDER — ITEMS
+   ===================================================================== */
+function renderAll() { renderCounter(); renderList(); renderHistory(); renderEvents(); refreshSheet();
+  $("#itemNames").innerHTML = Object.values(items).sort((a, b) => a.name.localeCompare(b.name)).map(i => `<option value="${esc(i.name)}">`).join(""); }
+function renderCounter() {
+  const ids = Object.keys(items);
+  $("#cnt").textContent = ids.filter(id => stockT(id) > 0).length;
+  $("#cntLabel").textContent = `of ${ids.length} items in stock`;
+}
+/* Inventory value = stock × SAQ price ÷ 1.14975 (before TPS/TVQ), by type, for the selected location */
+function renderValue(L) {
+  const v = {}; let total = 0; const missing = [];
+  for (const it of Object.values(items)) for (const f of fmtsOf(it)) {
+    const q = stock(it.id, f, "S", L) + stock(it.id, f, "N", L); if (!q) continue;
+    const p = priceOf(it, f); if (p == null) { missing.push(`${it.name} ${f}`); continue; }
+    const val = q * p / TAX; total += val; const ty = typeOf(it.category); v[ty] = (v[ty] || 0) + val;
+  }
+  $("#valueCards").innerHTML = `<div class="cards" style="margin-top:0">
+    <div class="card hl"><div class="k">Inventory value${L ? " · " + esc(L) : ""} · before tax</div><div class="v">${money(total)}</div></div>
+    ${TYPES.map(([ty]) => `<div class="card"><div class="k">${ty}</div><div class="v" style="font-size:21px">${money(v[ty] || 0)}</div></div>`).join("")}</div>
+    ${missing.length ? `<details class="sub" style="margin:-4px 0 14px"><summary>⚠ ${missing.length} item(s) in stock without a price — not counted in the value</summary>${missing.map(esc).join(" · ")}</details>` : ""}`;
+}
+function renderList() {
+  $("#locChips").innerHTML = ["All", ...LOCATIONS].map(l => `<button class="chip ${l === locFilter ? "active" : ""}" data-loc="${esc(l)}">${esc(l)}</button>`).join("")
+    + `<label class="chip" style="margin-left:auto;display:inline-flex;gap:6px;align-items:center"><input type="checkbox" id="showEmpty" ${showEmpty ? "checked" : ""}> Show items not in stock</label>`;
+  const q = $("#q").value.trim().toLowerCase();
+  const L = locFilter === "All" ? undefined : locFilter;
+  renderValue(L);
+  const has = it => L ? stockLoc(it.id, L) > 0 : stockT(it.id) > 0;
+  const list = Object.values(items).filter(it => (showEmpty ? (!L || it.location === L || has(it)) : has(it)) &&
+    (!q || [it.name, it.category, it.location].join(" ").toLowerCase().includes(q)));
+  if (!list.length) { $("#itemList").innerHTML = `<div class="empty">${Object.keys(items).length ? "No item found." : "No items yet."}</div>`; return; }
+  const byCat = {}; for (const it of list) (byCat[it.category || "Other"] ??= []).push(it);
+  const ord = c => { const i = CATEGORIES.indexOf(c); return i < 0 ? 99 : i; };
+  $("#itemList").innerHTML = Object.keys(byCat).sort((a, b) => ord(a) - ord(b) || a.localeCompare(b)).map(c => `
+    <div class="group"><h3>${esc(c)}</h3><div class="list">
+    ${byCat[c].sort((a, b) => a.name.localeCompare(b.name)).map(it => { const t = L ? r2(stockLoc(it.id, L)) : stockT(it.id);
+      const where = L ? "" : LOCATIONS.filter(x => stockLoc(it.id, x) > 0).join(", ");
+      const fl = fmtsOf(it).filter(f => stock(it.id, f, "S", L) + stock(it.id, f, "N", L) > 0);
+      const br = fl.length > 1 || (fl.length === 1 && fmtsOf(it).length > 1) ? fl.map(f => `${esc(f)}: Stamped ${fmt(stock(it.id, f, "S", L))} · Not stamped ${fmt(stock(it.id, f, "N", L))}`).join("<br>") : esc(fl[0] || "");
+      let tS = 0, tN = 0; fmtsOf(it).forEach(f => { tS += stock(it.id, f, "S", L); tN += stock(it.id, f, "N", L); });
+      return `<div class="row" data-id="${esc(it.id)}"><div><div class="name">${esc(it.name)}</div><div class="meta">${esc(it.category)} · ${esc(L || where || it.location)} · <span class="split">${br || esc(fmtsOf(it).join(" / "))}</span></div></div>
+        <div class="stk"><div class="sb S ${tS ? "" : "zero"}"><span>Stamped</span><b>${fmt(tS)}</b></div><div class="sb N ${tN ? "" : "zero"}"><span>Not stamped</span><b>${fmt(tN)}</b></div>
+        <div class="sb T"><span>Total</span><b>${fmt(t)}</b></div></div></div>`; }).join("")}
+    </div></div>`).join("");
+}
+
+/* ---------- Item sheet ---------- */
+function openSheet(kind, id) { sheetKind = kind; currentId = id; editing = id === "__new"; mode = "remove"; evTab = "alcohol"; openPick = null;
+  if (kind === "item" && items[id]) { locSel = locFilter !== "All" ? locFilter : bestLoc(id);
+    const fs = fmtsOf(items[id]); fmtSel = fs.find(f => stock(id, f, "S", locSel) + stock(id, f, "N", locSel) > 0) || fs[0]; }
+  $("#sheet").classList.toggle("wide", kind === "event");
+  if (kind === "event") evDraft = id === "__new" ? null : structuredClone(events[id]);
+  renderSheet(); $("#ov").classList.add("open"); $("#sheet").scrollTop = 0; }
+function closeSheet() { flushEventSave(); $("#ov").classList.remove("open"); sheetKind = currentId = null; editing = false; evDraft = null; }
+function refreshSheet() {
+  if (!sheetKind || editing) return;
+  if (sheetKind === "event") {
+    if ($("#sheet").contains(document.activeElement) && document.activeElement.tagName === "INPUT") return; // don't disturb typing
+    if (events[currentId] && !saveTimer) evDraft = structuredClone(events[currentId]);
+  }
+  renderSheet();
+}
+function renderSheet() { sheetKind === "event" ? renderEventSheet() : renderItemSheet(); }
+const eventNames = () => [...new Set([...Object.values(events).sort((a, b) => (b.date || "").localeCompare(a.date || "")).map(e => e.name),
+  ...moves.filter(m => m.event).sort((a, b) => b.ts - a.ts).map(m => m.event)])];
+
+function renderItemSheet() {
+  const it = items[currentId];
+  if (editing) return renderItemEdit(it);
+  if (!it) return closeSheet();
+  const { total, rows } = replay(it.id);
+  const fs = fmtsOf(it); if (!fs.includes(fmtSel)) fmtSel = fs[0];
+  if (!LOCATIONS.includes(locSel)) locSel = it.location;
+  const S = stock(it.id, fmtSel, "S", locSel), N = stock(it.id, fmtSel, "N", locSel);
+  const cur = stampSel === "S" ? S : N;
+  const lastBy = pref.get("by"), isOther = lastBy && !names.includes(lastBy);
+  const hints = { add: "Received / brought back — adds to the total", remove: "Taken out — subtracts from the total", count: "Physical count — replaces the total" };
+  $("#sheet").innerHTML = `
+    <div class="sheet-top">
+      <div><div class="sub">${esc(it.category)} · default: ${esc(it.location)}</div><h2>${esc(it.name)}</h2></div>
+      <div style="display:flex;gap:8px"><button class="btn ghost sm" data-a="editItem">Edit</button><button class="close" data-a="close">×</button></div>
+    </div>
+    <div class="big"><div class="n">${fmt(total)}</div><div class="u">${esc(it.unit || "")} in stock · all locations & formats</div></div>
+    <div class="chips" style="margin:14px 0 0;justify-content:center">${LOCATIONS.map(x => `<button class="chip ${x === locSel ? "active" : ""}" data-locsel="${esc(x)}">${esc(x)} · ${fmt(stockLoc(it.id, x))}</button>`).join("")}</div>
+    <div class="fmtgrid">${fs.map(f => `<button class="fmtbtn ${f === fmtSel ? "active" : ""}" data-fmt="${esc(f)}"><b>${esc(f)}</b><span>Stamped ${fmt(stock(it.id, f, "S", locSel))} · Not stamped ${fmt(stock(it.id, f, "N", locSel))}</span>${priceOf(it, f) ? `<span style="display:block">${money(priceOf(it, f))} SAQ</span>` : ""}</button>`).join("")}</div>
+    <div class="stamps">
+      <button class="stampbtn ${stampSel === "S" ? "active" : ""}" data-stamp="S">Stamped<small>${fmt(S)} in stock</small></button>
+      <button class="stampbtn ${stampSel === "N" ? "active" : ""}" data-stamp="N">Not stamped<small>${fmt(N)} in stock</small></button>
+    </div>
+    <div class="modes">
+      <button class="mode add ${mode === "add" ? "active" : ""}" data-mode="add">+ Add</button>
+      <button class="mode remove ${mode === "remove" ? "active" : ""}" data-mode="remove">− Remove</button>
+      <button class="mode count ${mode === "count" ? "active" : ""}" data-mode="count">= Count</button>
+    </div>
+    <div class="mode-hint">${hints[mode]}</div>
+    <div class="grid2">
+      <div class="field"><label>${mode === "count" ? "Counted" : "Quantity"} · ${esc(locSel)} · ${esc(fmtSel)} · ${STAMP[stampSel]}</label>
+        <div class="qty"><button data-a="minus">−</button><input id="fQty" type="number" inputmode="decimal" step="any" min="0" value="${mode === "count" ? fmt(cur) : 1}"><button data-a="plus">+</button></div></div>
+      <div class="field"><label>Event</label><input id="fEvent" list="evList" placeholder="e.g. BGO – Nov 18" value="${esc(pref.get("event"))}">
+        <datalist id="evList">${eventNames().map(e => `<option value="${esc(e)}">`).join("")}</datalist></div>
+      <div class="field"><label>By</label>
+        <select id="fBy">${names.map(n => `<option ${n === lastBy ? "selected" : ""}>${esc(n)}</option>`).join("")}<option value="__other" ${isOther ? "selected" : ""}>Other…</option></select>
+        <input id="fByOther" placeholder="Type a name" value="${isOther ? esc(lastBy) : ""}" style="display:${isOther ? "block" : "none"};margin-top:6px"></div>
+      <div class="field"><label>Note (optional)</label><input id="fNote" placeholder="e.g. 1 bottle opened"></div>
+    </div>
+    <div class="stamp">Date & time recorded automatically: ${dt(Date.now())}</div>
+    <button class="btn save" data-a="saveMove">Save movement</button>
+    <div class="hist"><h3>History</h3>
+    ${rows.length ? `<div class="tablewrap"><table><thead><tr><th>Date</th><th>Event</th><th>By</th><th>Movement</th><th>Total after</th><th></th></tr></thead><tbody>
+      ${rows.slice().reverse().map(r => `<tr><td>${dt(r.ts)}${r.note ? `<div class="note">${esc(r.note)}</div>` : ""}</td><td>${esc(r.event || "—")}</td><td>${esc(r.by || "—")}</td>
+        <td class="mv ${r.type}">${mvCell(r)}</td><td><b>${fmt(r.after)}</b><div class="split">${esc(r.format)} ${r.stamp === "S" ? "stamped" : "not stamped"} @ ${esc(r.location)}: ${fmt(r.afterKey)}</div></td><td><button class="del" data-del="${esc(r.id)}">Delete</button></td></tr>`).join("")}
+      </tbody></table></div>` : `<div class="empty" style="padding:16px">No movement yet.</div>`}
+    </div>`;
+}
+function renderItemEdit(it) {
+  const isNew = !it; it = it || { name: "", category: CATEGORIES[0], location: LOCATIONS[0], unit: "btl", formats: ["750ml"], prices: {} };
+  $("#sheet").innerHTML = `
+    <div class="sheet-top"><h2>${isNew ? "New item" : "Edit item"}</h2><button class="close" data-a="close">×</button></div>
+    <div class="field" style="margin-top:14px"><label>Name</label><input id="eName" value="${esc(it.name)}"></div>
+    <div class="grid2">
+      <div class="field"><label>Category</label><select id="eCat">${CATEGORIES.map(c => `<option ${c === it.category ? "selected" : ""}>${esc(c)}</option>`).join("")}</select></div>
+      <div class="field"><label>Location</label><select id="eLoc">${LOCATIONS.map(l => `<option ${l === it.location ? "selected" : ""}>${esc(l)}</option>`).join("")}</select></div>
+      <div class="field"><label>Unit</label><input id="eUnit" value="${esc(it.unit || "")}" placeholder="btl, unit…"></div>
+    </div>
+    <div class="field"><label>Formats & SAQ price per unit ($, TPS/TVQ included)</label><span class="note">Cost used in events is calculated before taxes (÷ 1.14975).</span></div>
+    <div id="fmtRows">${fmtsOf(it).map(f => fmtRow(f, it.prices?.[f])).join("")}</div>
+    <div class="sugg">${["375ml","500ml","750ml","1L","1.14L","1.75L","Can 355ml","Can 473ml","Bottle 355ml","Bottle 330ml"].map(f => `<button data-addfmt="${f}">+ ${f}</button>`).join("")}<button data-addfmt="">+ Other</button></div>
+    <div class="edit-actions">
+      ${isNew ? "<span></span>" : `<button class="btn danger" data-a="delItem">Delete item</button>`}
+      <div style="display:flex;gap:10px"><button class="btn ghost" data-a="cancelEdit">Cancel</button><button class="btn" data-a="saveItem">Save</button></div>
+    </div>`;
+}
+async function saveMovement() {
+  const it = items[currentId]; if (!it) return;
+  const qty = num($("#fQty").value);
+  if (qty < 0 || (mode !== "count" && qty === 0)) return toast("Enter a valid quantity");
+  const by = $("#fBy").value === "__other" ? $("#fByOther").value.trim() : $("#fBy").value;
+  if (!by) return toast("Who is doing this? (By)");
+  const event = $("#fEvent").value.trim(), note = $("#fNote").value.trim();
+  pref.set("by", by); pref.set("event", event);
+  try { await store.batch([moveOp(it.id, mode, qty, { event, by, note, stamp: stampSel, format: fmtSel, location: locSel })]);
+    const lbl = fmtSel + " " + STAMP[stampSel].toLowerCase() + " · " + locSel;
+    toast(mode === "add" ? `+${fmt(qty)} ${lbl} added` : mode === "remove" ? `−${fmt(qty)} ${lbl} removed` : `Count saved: ${fmt(qty)} ${lbl}`);
+  } catch (e) { toast("Error: " + e.message); }
+}
+async function deleteMovement(id) {
+  const m = moves.find(x => x.id === id); if (!m) return;
+  if (!confirm(`Delete this movement?\n\n${m.itemName} ${m.format || ""}: ${mvLabel(m)} ${m.stamp === "S" ? "stamped" : "not stamped"}  (${dt(m.ts)}${m.event ? " · " + m.event : ""})\n\nThe total will be recalculated.`)) return;
+  await del(C.moves, id); toast("Movement deleted");
+}
+function fmtRow(f = "", p = "") { return `<div class="fmtrow"><input data-fn value="${esc(f)}" placeholder="Format (e.g. 750ml)"><input data-fp inputmode="decimal" value="${esc(p ?? "")}" placeholder="Price $"><button class="del" data-rmfmt>×</button></div>`; }
+async function saveItem() {
+  const name = $("#eName").value.trim(); if (!name) return toast("Name is required");
+  const formats = [], prices = {};
+  document.querySelectorAll("#fmtRows .fmtrow").forEach(r => { const f = r.querySelector("[data-fn]").value.trim(), p = r.querySelector("[data-fp]").value.trim();
+    if (f && !formats.includes(f)) { formats.push(f); prices[f] = p === "" ? null : num(p); } });
+  if (!formats.length) return toast("Add at least one format");
+  if (currentId !== "__new") {
+    const lost = fmtsOf(items[currentId]).filter(f => !formats.includes(f) && stock(currentId, f, "S") + stock(currentId, f, "N") > 0);
+    if (lost.length && !confirm(`Format(s) removed but still in stock: ${lost.join(", ")}.\nTheir stock will be hidden. Continue?`)) return;
+  }
+  const data = { name, category: $("#eCat").value, location: $("#eLoc").value, unit: $("#eUnit").value.trim(), formats, prices };
+  if (currentId === "__new") {
+    let id = slug(name) || "item"; if (items[id]) id += "-" + Date.now().toString(36);
+    await put(C.items, id, { ...data, createdAt: Date.now() }); currentId = id;
+  } else await put(C.items, currentId, data, true);
+  editing = false; renderSheet(); toast("Item saved");
+}
+async function deleteItem() {
+  const it = items[currentId];
+  if (!confirm(`Delete "${it.name}" and all its history?\nThis cannot be undone.`)) return;
+  await store.batch([...movesFor(it.id).map(m => ({ op: "del", col: C.moves, id: m.id })), { op: "del", col: C.items, id: it.id }]);
+  closeSheet(); toast("Item deleted");
+}
+
+/* =====================================================================
+   EVENTS
+   Flow: 1 Required list (from stock / to buy) → 2 Take from stock
+         → 3 End inventory (used + cost) → 4 Close: leftovers back to stock or SAQ
+   ===================================================================== */
+const STATUS = { planning: "Planning", out: "At event", closed: "Closed" };
+const evStamp = ev => ev.stamp || "N";
+const lineLoc = l => l.location || items[l.itemId]?.location || LOCATIONS[0];
+const lstock = (l, k) => stock(l.itemId, l.format, k, lineLoc(l));
+/* Each line takes stock from any location and stamp: l.picks = { "Estelle|S": qty, "Alcohol Fridge|N": qty, … } */
+const SHORTLOC = { "Alcohol Fridge": "Fridge", "Office Shelf": "Shelf", "Estelle": "Estelle" };
+let openPick = null;
+const picksOf = l => { if (l.picks) return l.picks; const p = {}, L = lineLoc(l);
+  if (num(l.fromS)) p[`${L}|S`] = l.fromS; if (num(l.fromN)) p[`${L}|N`] = l.fromN; return p; };
+const availKey = (l, key) => { const [L, k] = key.split("|"); return stock(l.itemId, l.format, k, L); };
+function syncFrom(l) { const p = picksOf(l); l.picks = p; let a = 0, b = 0;
+  for (const [key, v] of Object.entries(p)) key.endsWith("|S") ? a += num(v) : b += num(v); l.fromS = fmt(a); l.fromN = fmt(b); }
+const pickOver = l => Object.entries(picksOf(l)).some(([key, v]) => num(v) > availKey(l, key) + 1e-9);
+const pickSummary = l => Object.entries(picksOf(l)).filter(([, v]) => num(v) > 0)
+  .map(([key, v]) => { const [L, k] = key.split("|"); return `${fmt(v)} · ${SHORTLOC[L] || L} · ${k === "S" ? "Stamped" : "Not stamped"}`; }).join("<br>") || "0 · choose";
+const returnLoc = (l, k) => { const e = Object.entries(picksOf(l)).filter(([, v]) => num(v) > 0).sort((a, b) => num(b[1]) - num(a[1]));
+  return ((e.find(([key]) => key.endsWith("|" + k)) || e[0])?.[0].split("|")[0]) || items[l.itemId]?.location || LOCATIONS[0]; };
+const kinds = ev => evStamp(ev) === "mix" ? ["S", "N"] : [evStamp(ev)];
+const isSet = v => v !== "" && v != null;
+
+function lineCalc(l) {
+  const fromS = num(l.fromS), fromN = num(l.fromN), buyS = num(l.buyS), buyN = num(l.buyN);
+  const bS = r2(fromS + buyS), bN = r2(fromN + buyN), brought = r2(bS + bN);
+  // end count needed for each stamp that was brought
+  const known = (bS === 0 || isSet(l.endS)) && (bN === 0 || isSet(l.endN));
+  const endS = bS === 0 && !isSet(l.endS) ? 0 : num(l.endS), endN = bN === 0 && !isSet(l.endN) ? 0 : num(l.endN);
+  const end = known ? r2(endS + endN) : null;
+  const used = known ? r2(brought - end) : null;
+  const saq = known ? Math.min(num(l.saq), end) : 0;             // SAQ returns come from not-stamped leftovers first
+  const saqN = Math.min(saq, endN), saqS = r2(saq - saqN);
+  const backS = known ? r2(endS - saqS) : null, backN = known ? r2(endN - saqN) : null;
+  const priceIncl = num(l.price), price = priceIncl / TAX;     // cost before TPS/TVQ
+  return { fromS, fromN, buyS, buyN, bS, bN, brought, endS, endN, end, used, saq, backS, backN,
+    back: known ? r2(backS + backN) : null, over: known && (endS > bS || endN > bN),
+    price, priceIncl, cost: used == null ? null : used * price, buyCost: (buyS + buyN) * priceIncl, saqValue: saq * priceIncl };
+}
+function eventTotals(ev) {
+  const t = { required: 0, fromS: 0, fromN: 0, fromStock: 0, buyS: 0, buyN: 0, buy: 0, buyCost: 0, brought: 0, used: 0, cost: 0, back: 0, backS: 0, backN: 0, saq: 0, saqValue: 0, missingEnd: 0, noPrice: 0 };
+  for (const l of ev.lines || []) {
+    const c = lineCalc(l);
+    t.required += num(l.required); t.fromS += c.fromS; t.fromN += c.fromN; t.buyS += c.buyS; t.buyN += c.buyN; t.buyCost += c.buyCost; t.brought += c.brought;
+    if (c.end == null) t.missingEnd++; else { t.used += c.used; t.cost += c.cost; t.back += c.back; t.backS += c.backS; t.backN += c.backN; t.saq += c.saq; t.saqValue += c.saqValue; }
+    if (!c.price) t.noPrice++;
+  }
+  t.fromStock = t.fromS + t.fromN; t.buy = t.buyS + t.buyN;
+  return t;
+}
+/* Auto split of a required quantity between stamped/not stamped stock and purchases */
+/* Auto: take the event's stamp first (mix = stamped then not stamped), from the locations with the most stock; the rest is to buy */
+function autoSplit(l, ev) {
+  const st = evStamp(ev), stamps = st === "S" ? ["S"] : st === "N" ? ["N"] : ["S", "N"], p = {};
+  let left = num(l.required);
+  for (const k of stamps) for (const [L, a] of LOCATIONS.map(L => [L, stock(l.itemId, l.format, k, L)]).filter(x => x[1] > 0).sort((a, b) => b[1] - a[1])) {
+    if (left <= 0) break; const take = Math.min(left, a); p[`${L}|${k}`] = fmt(take); left = r2(left - take); }
+  l.picks = p; syncFrom(l);
+  l.buyS = fmt(st === "S" ? left : 0); l.buyN = fmt(st === "S" ? 0 : left);
+}
+function rebalanceBuy(l, ev) {   // after editing what's taken from stock: the rest goes to "to buy"
+  syncFrom(l); const st = evStamp(ev), rest = Math.max(0, num(l.required) - num(l.fromS) - num(l.fromN));
+  if (st === "S") { l.buyS = fmt(rest); l.buyN = "0"; } else if (st === "N") { l.buyN = fmt(rest); l.buyS = "0"; }
+  else l.buyN = fmt(Math.max(0, rest - num(l.buyS)));
+}
+
+function eventCosts(ev, t = eventTotals(ev)) {
+  let oz = 0;
+  for (const l of ev.lines || []) { const c = lineCalc(l); if (c.used > 0 && MIXER_CATS.includes(items[l.itemId]?.category)) oz += c.used * mlOf(l.format) / OZ_ML; }
+  const drinks = oz / params.ozPerDrink, entered = (ev.mixers || []).reduce((a, m) => a + num(m.qty) * num(m.price), 0);
+  const mixers = entered > 0 ? entered : drinks * params.mixerPerDrink;
+  const extras = (ev.extras || []).reduce((a, x) => a + num(x.qty) * num(x.unit), 0);
+  const total = t.cost + mixers + extras, g = num(ev.guests), revenue = g * num(ev.pricePP);
+  return { oz, drinks, mixers, mixersEntered: entered > 0, extras, total, perGuest: g ? total / g : null, revenue, profit: revenue ? revenue - total : null, margin: revenue ? (revenue - total) / revenue * 100 : null };
+}
+function summaryHTML(ev) {
+  const t = eventTotals(ev), x = eventCosts(ev, t);
+  const row = (a, b, v, strong) => `<tr${strong ? ' style="background:var(--soft)"' : ""}><td>${strong ? `<b>${a}</b>` : a}</td><td class="note">${b}</td><td class="num">${strong ? `<b>${v}</b>` : v}</td></tr>`;
+  return `<div class="cards">
+      <div class="card"><div class="k">Total cost</div><div class="v">${money(x.total)}</div></div>
+      <div class="card"><div class="k">Cost per guest</div><div class="v">${x.perGuest == null ? "—" : money(x.perGuest)}</div>${num(ev.guests) ? `<div class="sub">${fmt(ev.guests)} guests</div>` : `<div class="sub">Add guests in Edit</div>`}</div>
+      <div class="card"><div class="k">Revenue</div><div class="v">${x.revenue ? money(x.revenue) : "—"}</div>${num(ev.pricePP) ? `<div class="sub">${money(num(ev.pricePP))} per guest</div>` : ""}</div>
+      <div class="card hl"><div class="k">Profit</div><div class="v">${x.profit == null ? "—" : money(x.profit)}</div></div>
+      <div class="card"><div class="k">Margin</div><div class="v">${x.margin == null ? "—" : x.margin.toFixed(1) + "%"}</div></div>
+    </div>
+    <div class="tablewrap"><table>
+      ${row("Alcohol used", "SAQ prices ÷ 1.14975 (before TPS/TVQ)", money(t.cost))}
+      ${x.mixersEntered ? row("Mixers", "From the Mixers tab (qty × $ per unit)", money(x.mixers))
+        : row("Mixers (estimate)", `${fmt(x.oz)} oz of spirits & liqueurs ÷ ${params.ozPerDrink} oz = ${Math.round(x.drinks)} drinks × ${money(params.mixerPerDrink)} — enter prices in the Mixers tab to replace`, money(x.mixers))}
+      ${row("Other costs", (ev.extras || []).filter(e => e.label).map(e => esc(e.label)).join(", ") || "—", money(x.extras))}
+      ${row("Total cost used", x.perGuest == null ? "" : `${money(x.total)} ÷ ${fmt(ev.guests)} guests = ${money(x.perGuest)} per guest`, money(x.total), true)}
+    </table></div>`;
+}
+function extrasHTML(ev) {
+  return `<div class="sec"><h3>Other costs (water, ice, garnish…)</h3>
+    ${(ev.extras || []).map((e, i) => `<div class="fmtrow" style="grid-template-columns:1fr 90px 110px 44px"><input data-xi="${i}" data-xf="label" value="${esc(e.label)}" placeholder="e.g. San Benedetto water">
+      <input data-xi="${i}" data-xf="qty" inputmode="decimal" value="${esc(e.qty)}" placeholder="Qty"><input data-xi="${i}" data-xf="unit" inputmode="decimal" value="${esc(e.unit)}" placeholder="$ / unit">
+      <button class="del" data-rmx="${i}">×</button></div>`).join("")}
+    <button class="btn ghost sm" data-a="addExtra">+ Add a cost</button></div>`;
+}
+function cocktailsHTML(ev) {
+  const list = (ev.cocktails || []).map((c, i) => `<div class="card" style="margin-bottom:8px;display:flex;justify-content:space-between;gap:10px;align-items:start">
+      <div><b>${esc(c.name)}</b> · ${fmt(c.drinks)} drinks<div class="note">${c.ings.map(g => `${esc(g.name)} ${esc(g.format)} · ${fmt(g.oz)} oz → ${fmt(g.bottles)} btl`).join("<br>")}</div></div>
+      <button class="del" data-rmck="${i}">Remove</button></div>`).join("");
+  const ing = `<div class="fmtrow ingrow" style="grid-template-columns:1fr 140px 100px"><input class="ci-item" list="itemNames" placeholder="Alcohol (type to search)" autocomplete="off"><select class="ci-fmt"><option value="">Format</option></select><input class="ci-oz" inputmode="decimal" placeholder="oz / drink"></div>`;
+  return `<div class="sec"><h3>Signature cocktails</h3>
+    <div class="help">Add a cocktail with its number of drinks and ounces of alcohol per drink — the bottles needed are added to the alcohol list above.</div>
+    ${list}
+    <div class="card"><div class="grid2"><div class="field"><label>Cocktail name</label><input id="ckName" placeholder="e.g. Spicy Margarita"></div>
+      <div class="field"><label>Number of drinks</label><input id="ckDrinks" inputmode="decimal" placeholder="e.g. 100"></div></div>
+      <div class="field" style="margin-bottom:6px"><label>Alcohol per drink</label></div><div id="ckIngs">${ing}${ing}${ing}</div>
+      <div class="actions" style="justify-content:space-between;margin-top:6px"><button class="btn ghost sm" data-a="addIng">+ Ingredient</button><button class="btn sm" data-a="addCocktail">Add cocktail to list</button></div></div></div>`;
+}
+function addCocktail() {
+  const name = $("#ckName").value.trim(), drinks = num($("#ckDrinks").value);
+  if (!name || !drinks) return toast("Enter the cocktail name and number of drinks");
+  const ings = [];
+  for (const r of document.querySelectorAll("#ckIngs .ingrow")) {
+    const n = r.querySelector(".ci-item").value.trim(); if (!n) continue;
+    const it = findItem(n); if (!it) return toast(`"${n}" not found in Items`);
+    const format = r.querySelector(".ci-fmt").value || fmtsOf(it)[0], oz = num(r.querySelector(".ci-oz").value), ml = mlOf(format);
+    if (!oz) return toast(`Enter the oz per drink for ${it.name}`); if (!ml) return toast(`Format "${format}" has no volume`);
+    const bottles = Math.ceil(drinks * oz * OZ_ML / ml - 1e-9);
+    let l = evDraft.lines.find(x => x.itemId === it.id && x.format === format);
+    if (!l) { l = { itemId: it.id, name: it.name, format, location: bestLoc(it.id, format), required: "0", price: priceOf(it, format) ?? "", endS: "", endN: "", saq: "" }; evDraft.lines.push(l); }
+    l.required = fmt(num(l.required) + bottles); autoSplit(l, evDraft);
+    ings.push({ itemId: it.id, name: it.name, format, oz, bottles });
+  }
+  if (!ings.length) return toast("Add at least one alcohol");
+  (evDraft.cocktails ??= []).push({ name, drinks, ings });
+  saveEventNow(); renderSheet(); toast(`${name} added to the list`);
+}
+function removeCocktail(i) {
+  const c = evDraft.cocktails[i]; if (!confirm(`Remove ${c.name} and its bottles from the list?`)) return;
+  for (const g of c.ings) { const l = evDraft.lines.find(x => x.itemId === g.itemId && x.format === g.format);
+    if (l) { l.required = fmt(Math.max(0, num(l.required) - g.bottles)); autoSplit(l, evDraft); } }
+  evDraft.cocktails.splice(i, 1); saveEventNow(); renderSheet();
+}
+function mixersHTML(ev) {
+  const rows = (ev.mixers || []).map((m, i) => `<div class="lrow"><input data-mx="${i}" data-mf="name" value="${esc(m.name)}" placeholder="Mixer">
+      <input data-mx="${i}" data-mf="qty" inputmode="decimal" value="${esc(m.qty)}" placeholder="Qty"><input data-mx="${i}" data-mf="unit" value="${esc(m.unit)}" placeholder="Unit (case…)">
+      <input data-mx="${i}" data-mf="price" inputmode="decimal" value="${esc(m.price)}" placeholder="$ / unit"><input class="optional" data-mx="${i}" data-mf="note" value="${esc(m.note)}" placeholder="Note">
+      <button class="del" data-rmmx="${i}">×</button></div>`).join("");
+  const tot = (ev.mixers || []).reduce((a, m) => a + num(m.qty) * num(m.price), 0);
+  return `<div class="sec"><h3>Mixers</h3>
+    <div class="help">Fill in by hand. Lines with a quantity go on the pack list. If you enter $ per unit, the real mixer cost replaces the $${params.mixerPerDrink}/drink estimate in Cost & profit.</div>
+    <div class="lrow lhead"><span>Mixer</span><span>Qty</span><span>Unit</span><span>$ / unit</span><span class="optional">Note</span><span></span></div>
+    ${rows || `<div class="empty">No mixers.</div>`}
+    <div class="actions" style="justify-content:space-between"><div style="display:flex;gap:8px"><button class="btn ghost sm" data-a="addMixer">+ Add a mixer</button>
+      <button class="btn ghost sm" data-a="loadMixers">Load default list</button></div><b id="mxTotal">${tot ? "Mixer cost: " + money(tot) : ""}</b></div></div>`;
+}
+function packHTML(ev) {
+  const rows = (ev.packlist || []).map((m, i) => `<div class="lrow pk"><input data-pk="${i}" data-pf="name" value="${esc(m.name)}" placeholder="Item">
+      <input data-pk="${i}" data-pf="qty" inputmode="decimal" value="${esc(m.qty)}" placeholder="Qty"><input class="optional" data-pk="${i}" data-pf="note" value="${esc(m.note)}" placeholder="Note">
+      <button class="del" data-rmpk="${i}">×</button></div>`).join("");
+  return `<div class="sec"><h3>Bar pack list (equipment)</h3>
+    <div class="help">Glassware, tools and supplies to bring. Lines with a quantity go on the pack list PDF.</div>
+    <div class="lrow pk lhead"><span>Item</span><span>Qty</span><span class="optional">Note</span><span></span></div>
+    ${rows || `<div class="empty">Empty list.</div>`}
+    <div class="actions" style="justify-content:flex-start"><button class="btn ghost sm" data-a="addPack">+ Add an item</button><button class="btn ghost sm" data-a="loadPack">Load default list</button></div></div>`;
+}
+/* Pack list — printable page (Save as PDF from the print dialog) */
+function packListDoc(ev) {
+  const box = '<span class="bx"></span>', q = v => fmt(v);
+  const groups = {};
+  for (const l of ev.lines || []) for (const [key, v] of Object.entries(picksOf(l))) { const n = num(v); if (n > 0) (groups[key.split("|")[0]] ??= []).push({ l, kk: key.split("|")[1], n }); }
+  const buys = []; for (const l of ev.lines || []) for (const kk of ["S", "N"]) { const n = num(l["buy" + kk]); if (n > 0) buys.push({ l, kk, n }); }
+  const nm = l => esc(items[l.itemId]?.name || l.name);
+  const tbl = (rows, extra) => `<table><thead><tr><th style="width:28px"></th><th>Item</th><th>Format</th><th>Stamp</th><th class="r">Qty</th>${extra ? "<th class='r'>Est. $ (tax incl.)</th>" : ""}</tr></thead><tbody>
+    ${rows.map(r => `<tr><td>${box}</td><td><b>${nm(r.l)}</b></td><td>${esc(r.l.format)}</td><td>${r.kk === "S" ? "Stamped" : "Not stamped"}</td><td class="r"><b>${q(r.n)}</b></td>${extra ? `<td class="r">${num(r.l.price) ? money(r.n * num(r.l.price)) : "—"}</td>` : ""}</tr>`).join("")}</tbody></table>`;
+  const order = ["Estelle", "Office Shelf", "Alcohol Fridge"];
+  const locTitle = L => L === "Estelle" ? "Pick up at Estelle" : `Take from ${L}`;
+  const sec = Object.keys(groups).sort((a, b) => order.indexOf(a) - order.indexOf(b)).map(L => `<h2>${locTitle(L)} <small>${groups[L].reduce((a, r) => a + r.n, 0)} units</small></h2>${tbl(groups[L])}`).join("");
+  const buyTot = buys.reduce((a, r) => a + r.n * num(r.l.price), 0);
+  const mx = (ev.mixers || []).filter(m => num(m.qty) > 0), pk = (ev.packlist || []).filter(m => num(m.qty) > 0);
+  const simple = (rows, cols) => `<table><thead><tr><th style="width:28px"></th>${cols.map(c => `<th>${c}</th>`).join("")}</tr></thead><tbody>${rows.join("")}</tbody></table>`;
+  const logo = document.getElementById("logoImg")?.src || "";
+  return `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Pack list — ${esc(ev.name)}</title><style>
+    @page{size:letter;margin:14mm}body{font-family:Helvetica,Arial,sans-serif;color:#2E231C;font-size:11.5px;margin:0}
+    header{display:flex;justify-content:space-between;align-items:center;border-bottom:2px solid #966A4D;padding-bottom:8px;margin-bottom:10px}
+    header img{height:30px}h1{font-size:20px;margin:0;text-align:right;letter-spacing:.06em}.meta{text-align:right;color:#966A4D;font-size:11.5px;margin-top:2px}
+    h2{font-size:12.5px;letter-spacing:.12em;text-transform:uppercase;color:#966A4D;margin:14px 0 5px;break-after:avoid}h2 small{color:#8a7b70;letter-spacing:0;text-transform:none;font-weight:normal}
+    table{width:100%;border-collapse:collapse;break-inside:auto}th{font-size:9.5px;text-transform:uppercase;letter-spacing:.08em;color:#8a7b70;text-align:left;border-bottom:1px solid #cbbcae;padding:4px 6px}
+    td{border-bottom:1px solid #e6ddd4;padding:5px 6px;vertical-align:middle}tr{break-inside:avoid}.r{text-align:right}
+    .bx{display:inline-block;width:12px;height:12px;border:1.5px solid #2E231C;border-radius:2px}
+    .sum{display:flex;gap:10px;margin:6px 0 2px}.sum div{flex:1;border:1px solid #e6ddd4;border-radius:6px;padding:6px 8px}.sum b{display:block;font-size:15px}
+    .sign{margin-top:18px;display:flex;gap:30px;color:#8a7b70}.sign span{flex:1;border-top:1px solid #8a7b70;padding-top:4px}
+    .btnbar{position:fixed;top:8px;right:8px}@media print{.btnbar{display:none}}</style></head><body>
+    <div class="btnbar"><button onclick="print()" style="padding:8px 14px;font-size:14px">Print / Save as PDF</button></div>
+    <header><img src="${logo}" alt=""><div><h1>BAR PACK LIST</h1><div class="meta">${esc(ev.name)} · ${dOnly(ev.date)}${ev.client ? " · " + esc(ev.client) : ""}${num(ev.guests) ? " · " + fmt(ev.guests) + " guests" : ""} · ${STAMP[evStamp(ev)]}</div></div></header>
+    <div class="sum"><div>From stock<b>${q(eventTotals(ev).fromStock)} units</b></div><div>To buy at SAQ<b>${q(eventTotals(ev).buy)} units</b></div><div>Est. purchase<b>${money(buyTot)}</b></div></div>
+    ${sec || ""}
+    ${buys.length ? `<h2>To buy at the SAQ <small>${q(buys.reduce((a, r) => a + r.n, 0))} units · ${money(buyTot)} tax incl.</small></h2>${tbl(buys, true)}` : ""}
+    ${(ev.cocktails || []).length ? `<h2>Signature cocktails</h2>${simple(ev.cocktails.map(c => `<tr><td>${box}</td><td><b>${esc(c.name)}</b></td><td>${fmt(c.drinks)} drinks</td><td>${c.ings.map(g => `${esc(g.name)} ${fmt(g.oz)} oz`).join(" · ")}</td></tr>`), ["Cocktail", "Drinks", "Recipe (alcohol)"])}` : ""}
+    ${mx.length ? `<h2>Mixers</h2>${simple(mx.map(m => `<tr><td>${box}</td><td><b>${esc(m.name)}</b></td><td>${fmt(m.qty)} ${esc(m.unit || "")}</td><td>${esc(m.note || "")}</td></tr>`), ["Mixer", "Qty", "Note"])}` : ""}
+    ${pk.length ? `<h2>Bar equipment</h2>${simple(pk.map(m => `<tr><td>${box}</td><td><b>${esc(m.name)}</b></td><td>${fmt(m.qty)}</td><td>${esc(m.note || "")}</td></tr>`), ["Item", "Qty", "Note"])}` : ""}
+    <div class="sign"><span>Packed by</span><span>Checked by</span><span>Date</span></div>
+    </body></html>`;
+}
+function openPackList() {
+  flushEventSave();
+  const html = packListDoc(evDraft), w = window.open("", "_blank");
+  if (!w) { toast("Allow pop-ups to open the pack list"); return; }
+  w.document.open(); w.document.write(html); w.document.close();
+  setTimeout(() => { try { w.focus(); w.print(); } catch {} }, 600);
+}
+function renderEvents() {
+  $("#evChips").innerHTML = ["Active", "Closed", "All"].map(f => `<button class="chip ${f === evFilter ? "active" : ""}" data-evf="${f}">${f}</button>`).join("");
+  const q = $("#eq").value.trim().toLowerCase();
+  const list = Object.values(events).filter(e =>
+      (evFilter === "All" || (evFilter === "Closed" ? e.status === "closed" : e.status !== "closed")) &&
+      (!q || [e.name, e.client, e.date].join(" ").toLowerCase().includes(q)))
+    .sort((a, b) => (b.date || "").localeCompare(a.date || "") || b.createdAt - a.createdAt);
+  $("#eventList").innerHTML = list.length ? `<div class="ev-list">${list.map(e => { const t = eventTotals(e);
+    return `<div class="ev-card" data-ev="${esc(e.id)}">
+      <div style="display:flex;justify-content:space-between;gap:8px;align-items:start"><div class="t">${esc(e.name)}</div><span class="badge ${e.status}">${STATUS[e.status]}</span></div>
+      <div class="sub" style="margin:4px 0 10px">${dOnly(e.date)}${e.client ? " · " + esc(e.client) : ""} ${stTag(evStamp(e))}</div>
+      <div class="sub">${(e.lines || []).length} items · ${fmt(t.required)} required${num(e.guests) ? ` · ${fmt(e.guests)} guests` : ""}${e.status === "closed" ? ` · <b style="color:var(--ink)">Total cost ${money(eventCosts(e, t).total)}</b>` : t.buy ? ` · ${fmt(t.buy)} to buy` : ""}</div>
+    </div>`; }).join("")}</div>`
+    : `<div class="empty">No event${evFilter !== "All" ? " (" + evFilter.toLowerCase() + ")" : ""}. Click “+ New event”.</div>`;
+}
+
+const inp = (f, v, cls = "") => `<input class="${cls}" data-f="${f}" inputmode="decimal" value="${esc(v ?? "")}">`;
+const sn = (s, n) => `Stamped ${fmt(s)} · Not stamped ${fmt(n)}`;
+
+function renderEventSheet() {
+  if (editing) return renderEventEdit();
+  const ev = evDraft; if (!ev) return closeSheet();
+  const st = ev.status, t = eventTotals(ev), mix = evStamp(ev) === "mix", k = evStamp(ev);
+  const steps = [["1 · Required list", "From stock / to buy"], ["2 · At event", "Stock taken out"], ["3 · End inventory", "Used, cost, returns"]];
+  const cur = st === "planning" ? 0 : st === "out" ? 1 : 2;
+  let body = "";
+
+  if (st === "planning") {
+    const head = `<th>Item</th><th class="num">Available</th><th class="num">Required</th><th class="num">From stock (where · stamp)</th>${mix
+      ? `<th class="num">Buy stamped</th><th class="num">Buy not st.</th>` : `<th class="num">To buy ${stTag(k)}</th>`}<th class="num">SAQ $ (tax incl.)</th><th class="num">Buy $ (tax incl.)</th><th></th>`;
+    const ncol = mix ? 9 : 8;
+    const rows = (ev.lines || []).map((l, i) => { const it = items[l.itemId], c = lineCalc(l);
+      const aS = stock(l.itemId, l.format, "S"), aN = stock(l.itemId, l.format, "N");
+      const buys = mix ? `<td class="num">${inp("buyS", l.buyS)}</td><td class="num">${inp("buyN", l.buyN)}</td>` : `<td class="num">${inp("buy" + k, l["buy" + k])}</td>`;
+      const keys = LOCATIONS.flatMap(L => ["S", "N"].map(kk => `${L}|${kk}`)).filter(key => availKey(l, key) > 0 || num(picksOf(l)[key]) > 0);
+      const editor = openPick === i ? `<tr class="pickrow" data-i="${i}"><td colspan="${ncol}">
+          <div class="note" style="margin-bottom:4px">Take from any location, stamped or not — quantities stay editable. The rest goes to <b>to buy</b>.</div>
+          ${keys.length ? `<div class="pickgrid">${keys.map(key => { const [L, kk] = key.split("|");
+            return `<label class="${kk}">${esc(L)} · ${kk === "S" ? "Stamped" : "Not stamped"}<small>${fmt(availKey(l, key))} available</small>
+              <input data-pkey="${esc(key)}" inputmode="decimal" value="${esc(picksOf(l)[key] ?? "")}" placeholder="0" style="width:72px;padding:8px;border:1px solid var(--line);border-radius:8px;text-align:right"></label>`; }).join("")}</div>`
+            : `<div class="empty" style="padding:8px">Nothing in stock for this format — everything goes to buy.</div>`}
+          <div class="actions" style="margin-top:6px"><button class="btn ghost sm" data-autopick="${i}">Auto</button><button class="btn sm" data-pick="${i}">Done</button></div></td></tr>` : "";
+      return `<tr data-i="${i}"><td><b>${esc(it?.name || l.name)}</b><div class="note">${esc(l.format)}</div></td>
+        <td class="num"><span class="split">${sn(aS, aN)}</span></td>
+        <td class="num">${inp("required", l.required)}</td>
+        <td class="num"><button class="pickbtn ${pickOver(l) ? "warn" : ""} ${openPick === i ? "open" : ""}" data-pick="${i}">${pickSummary(l)}</button></td>${buys}
+        <td class="num">${inp("price", l.price, "price")}</td><td class="num c-buycost">${c.buyS + c.buyN ? money(c.buyCost) : "—"}</td>
+        <td><button class="del" data-rmline="${i}">×</button></td></tr>${editor}`; }).join("");
+    const foot = `<td>Total</td><td></td><td class="num t-required">${fmt(t.required)}</td><td class="num t-fromStock">${fmt(t.fromStock)}</td>${mix
+      ? `<td class="num t-buyS">${fmt(t.buyS)}</td><td class="num t-buyN">${fmt(t.buyN)}</td>` : `<td class="num t-buy">${fmt(t.buy)}</td>`}<td></td><td class="num t-buyCost">${money(t.buyCost)}</td><td></td>`;
+    body = `
+    <div class="sec"><h3>Alcohol list required ${stTag(k)}</h3>
+    <div class="help">Enter what's required. <b>From stock</b> is filled automatically${mix ? " (stamped first, then not stamped)" : ` with <b>${STAMP[k].toLowerCase()}</b> stock`} from the locations that have the most — tap it to choose <b>where</b> and <b>stamped / not stamped</b> yourself. The rest goes to <b>to buy</b>.</div>
+    <div class="tablewrap"><table><thead><tr>${head}</tr></thead>
+      <tbody>${rows || `<tr><td colspan="10" class="empty">Add the first item below.</td></tr>`}</tbody>
+      <tfoot><tr>${foot}</tr></tfoot></table></div>
+    <div class="addline"><input id="addItem" list="itemNames" placeholder="Add an item (type to search)…" autocomplete="off"><select id="addFmt"><option value="">Format</option></select><input id="addQty" inputmode="decimal" placeholder="Qty"><button class="btn" data-a="addLine">Add</button></div>
+    <div class="actions">
+      <button class="btn ghost" data-a="copyShop" ${t.buy ? "" : "disabled"}>Copy shopping list</button>
+      <button class="btn dark" data-a="pull" ${(ev.lines || []).length ? "" : "disabled"}>Take from stock →</button>
+    </div></div>
+    ${cocktailsHTML(ev)}`;
+  }
+
+  if (st === "out" || st === "closed") {
+    const ro = st === "closed";
+    const head = mix
+      ? `<th>Item</th><th class="num">Brought</th><th class="num">End stamped</th><th class="num">End not st.</th><th class="num">Used</th><th class="num">SAQ $ (tax incl.)</th><th class="num">Cost used (before tax)</th><th class="num">Back to stock</th><th class="num">Return SAQ</th>`
+      : `<th>Item</th><th class="num">From stock</th><th class="num">Bought</th><th class="num">Brought</th><th class="num">End (left)</th><th class="num">Used</th><th class="num">SAQ $ (tax incl.)</th><th class="num">Cost used (before tax)</th><th class="num">Back to stock</th><th class="num">Return SAQ</th>`;
+    const rows = (ev.lines || []).map((l, i) => { const it = items[l.itemId], c = lineCalc(l);
+      const endIn = kk => ro ? fmt(kk === "S" ? c.endS : c.endN) : (c["b" + kk] > 0 || isSet(l["end" + kk]) ? inp("end" + kk, l["end" + kk]).replace("<input", '<input placeholder="?"') : "—");
+      const backTxt = c.back == null ? "—" : mix ? `<span class="split" style="color:var(--green)">${sn(c.backS, c.backN)}</span>` : fmt(c.back);
+      const lead = mix ? `<td class="num"><b>${fmt(c.brought)}</b><div class="split">${sn(c.bS, c.bN)}</div></td><td class="num">${endIn("S")}</td><td class="num">${endIn("N")}</td>`
+                       : `<td class="num">${fmt(c.fromS + c.fromN)}</td><td class="num">${fmt(c.buyS + c.buyN)}</td><td class="num"><b>${fmt(c.brought)}</b></td><td class="num">${endIn(k)}</td>`;
+      return `<tr data-i="${i}"><td><b>${esc(it?.name || l.name)}</b><div class="note">${esc(l.format)}</div></td>${lead}
+        <td class="num c-used ${c.over ? "warn" : ""}">${c.used == null ? "—" : fmt(c.used)}</td>
+        <td class="num">${ro ? money(c.priceIncl) : inp("price", l.price, "price")}</td>
+        <td class="num c-cost">${c.cost == null ? "—" : money(c.cost)}</td>
+        <td class="num c-back ok">${backTxt}</td>
+        <td class="num">${ro ? fmt(c.saq) : inp("saq", l.saq).replace("<input", '<input placeholder="0"')}</td></tr>`; }).join("");
+    const foot = mix
+      ? `<td>Total</td><td class="num">${fmt(t.brought)}</td><td></td><td></td>`
+      : `<td>Total</td><td class="num">${fmt(t.fromStock)}</td><td class="num">${fmt(t.buy)}</td><td class="num">${fmt(t.brought)}</td><td></td>`;
+    body = `
+    <div class="sec"><h3>End inventory ${stTag(k)}</h3>
+    ${ro ? "" : `<div class="help">Count what's <b>left</b> at the end. <b>Used</b> and <b>cost</b> are calculated. Leftovers go <b>back to stock</b> by default (same stamp) — put a quantity in <b>Return SAQ</b> for unopened bottles going back to the SAQ${mix ? " (taken from not stamped first)" : ""}.</div>`}
+    <div class="tablewrap"><table><thead><tr>${head}</tr></thead><tbody>${rows}</tbody>
+      <tfoot><tr>${foot}<td class="num t-used">${fmt(t.used)}</td><td></td><td class="num t-cost">${money(t.cost)}</td><td class="num t-back">${fmt(t.back)}</td><td class="num t-saq">${fmt(t.saq)}</td></tr></tfoot>
+    </table></div>
+    <div class="sec"><h3>Cost & profit</h3><div id="evSummary">${summaryHTML(ev)}</div></div>
+    ${extrasHTML(ev)}
+    <div class="cards">
+      <div class="card"><div class="k">Alcohol cost used · before tax</div><div class="v t-cost">${money(t.cost)}</div></div>
+      <div class="card"><div class="k">Used</div><div class="v t-used">${fmt(t.used)}</div></div>
+      <div class="card"><div class="k">Back to stock</div><div class="v t-back">${fmt(t.back)}</div>${mix ? `<div class="sub t-backSN">${sn(t.backS, t.backN)}</div>` : ""}</div>
+      <div class="card"><div class="k">Return SAQ · tax incl.</div><div class="v t-saqValue">${money(t.saqValue)}</div><div class="sub t-saq2">${fmt(t.saq)} units</div></div>
+      <div class="card"><div class="k">Purchases · tax incl.</div><div class="v">${money(t.buyCost)}</div></div>
+    </div>
+    <div class="sub t-warn">${t.noPrice ? `⚠ ${t.noPrice} item(s) without a price — cost is incomplete.` : ""}</div>
+    <div class="actions">
+      ${ro ? `${ev.historical ? `<span class="note" style="margin-right:auto">Historical event (before the Nov 19 count) — not linked to stock movements.</span>` : `<button class="btn ghost" data-a="reopen">Reopen</button>`}<button class="btn" data-a="csvEvent">Export CSV</button>`
+           : `<button class="btn ghost" data-a="undoPull">← Undo take from stock</button><button class="btn" data-a="closeEv">Close event & update inventory</button>`}
+    </div></div>`;
+  }
+
+  $("#sheet").innerHTML = `
+    <div class="sheet-top">
+      <div><div class="sub">${dOnly(ev.date)}${ev.client ? " · " + esc(ev.client) : ""}${num(ev.guests) ? ` · ${fmt(ev.guests)} guests` : ""} · <span class="badge ${st}">${STATUS[st]}</span></div><h2>${esc(ev.name)}</h2>${ev.notes ? `<div class="note">${esc(ev.notes)}</div>` : ""}</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end"><button class="btn sm" data-a="packPdf">Pack list (PDF)</button><button class="btn ghost sm" data-a="editEvent">Edit</button><button class="close" data-a="close">×</button></div>
+    </div>
+    <div class="subtabs">${[["alcohol", "Alcohol"], ["mixers", `Mixers${(ev.mixers || []).some(m => num(m.qty)) ? " · " + (ev.mixers || []).filter(m => num(m.qty)).length : ""}`], ["pack", "Bar pack list"]]
+      .map(([k2, l2]) => `<button class="${evTab === k2 ? "active" : ""}" data-evtab="${k2}">${l2}</button>`).join("")}</div>
+    ${evTab === "alcohol" ? `<div class="steps">${steps.map(([a, b], i) => `<div class="step ${i === cur ? "cur" : i < cur || st === "closed" ? "done" : ""}"><b>${a}</b>${b}</div>`).join("")}</div>${body}`
+      : evTab === "mixers" ? mixersHTML(ev) : packHTML(ev)}`;
+}
+
+/* Live update of computed cells without re-rendering (keeps keyboard focus on iPad) */
+function updateEventCells() {
+  const ev = evDraft, t = eventTotals(ev), mix = evStamp(ev) === "mix", k = evStamp(ev);
+  document.querySelectorAll("#sheet tr[data-i]").forEach(tr => {
+    const l = ev.lines[+tr.dataset.i]; if (!l) return; const c = lineCalc(l);
+    const set = (s, v, html) => { const e = tr.querySelector(s); if (e) e[html ? "innerHTML" : "textContent"] = v; };
+    set(".c-buycost", c.buyS + c.buyN ? money(c.buyCost) : "—");
+    set(".c-used", c.used == null ? "—" : fmt(c.used)); set(".c-cost", c.cost == null ? "—" : money(c.cost));
+    set(".c-back", c.back == null ? "—" : mix ? `<span class="split" style="color:var(--green)">${sn(c.backS, c.backN)}</span>` : fmt(c.back), true);
+    const pb = tr.querySelector(".pickbtn"); if (pb) { pb.innerHTML = pickSummary(l); pb.classList.toggle("warn", pickOver(l)); }
+    tr.querySelector(".c-used")?.classList.toggle("warn", c.over);
+  });
+  const set = (s, v) => document.querySelectorAll("#sheet " + s).forEach(e => e.textContent = v);
+  set(".t-required", fmt(t.required)); set(".t-fromStock", fmt(t.fromStock)); set(".t-buy", fmt(t.buy)); set(".t-buyCost", money(t.buyCost));
+  set(".t-fromS", fmt(t.fromS)); set(".t-fromN", fmt(t.fromN)); set(".t-buyS", fmt(t.buyS)); set(".t-buyN", fmt(t.buyN));
+  set(".t-used", fmt(t.used)); set(".t-cost", money(t.cost)); set(".t-back", fmt(t.back)); set(".t-saq", fmt(t.saq)); set(".t-backSN", sn(t.backS, t.backN));
+  set(".t-saqValue", money(t.saqValue)); set(".t-saq2", fmt(t.saq) + " units");
+  const sm = document.getElementById("evSummary"); if (sm) sm.innerHTML = summaryHTML(ev);
+}
+function onEventInput(input) {
+  const tr = input.closest("tr[data-i]"); if (!tr || !evDraft) return;
+  const l = evDraft.lines[+tr.dataset.i], f = input.dataset.f;
+  l[f] = input.value;
+  if (f === "required") autoSplit(l, evDraft);
+  else if (/^from|^buyS$/.test(f) && f !== "buyN") rebalanceBuy(l, evDraft);
+  if (f === "required" || /^from|^buyS$/.test(f)) syncLineInputs(l, +tr.dataset.i, f);
+  updateEventCells(); scheduleEventSave();
+}
+function syncLineInputs(l, i, skip) {
+  document.querySelectorAll(`#sheet tr[data-i="${i}"]`).forEach(tr => {
+    ["buyS", "buyN"].forEach(x => { if (x !== skip) { const e = tr.querySelector(`[data-f="${x}"]`); if (e) e.value = l[x]; } });
+    tr.querySelectorAll("[data-pkey]").forEach(e => { if (document.activeElement !== e) e.value = picksOf(l)[e.dataset.pkey] ?? ""; });
+  });
+}
+function onPickInput(input) {
+  const i = +input.closest("tr[data-i]").dataset.i, l = evDraft.lines[i];
+  (l.picks = picksOf(l))[input.dataset.pkey] = input.value; rebalanceBuy(l, evDraft);
+  syncLineInputs(l, i); updateEventCells(); scheduleEventSave();
+}
+function scheduleEventSave() { clearTimeout(saveTimer); saveTimer = setTimeout(flushEventSave, 500); }
+function flushEventSave() {
+  if (!saveTimer || !evDraft) return; clearTimeout(saveTimer); saveTimer = null;
+  put(C.events, evDraft.id, evDraft).catch(e => toast("Error: " + e.message));
+}
+async function saveEventNow() { clearTimeout(saveTimer); saveTimer = null; await put(C.events, evDraft.id, evDraft); }
+
+const findItem = n => Object.values(items).find(i => i.name.toLowerCase() === n.trim().toLowerCase());
+function fillAddFmt() {
+  const it = findItem($("#addItem").value), sel = $("#addFmt");
+  sel.innerHTML = it ? fmtsOf(it).map(f => `<option>${esc(f)}</option>`).join("") : `<option value="">Format</option>`;
+}
+function addLine() {
+  const nameIn = $("#addItem").value.trim(); if (!nameIn) return;
+  const it = findItem(nameIn);
+  if (!it) return toast("Item not found — create it in Items first");
+  const format = $("#addFmt").value || fmtsOf(it)[0];
+  if (evDraft.lines.some(l => l.itemId === it.id && l.format === format)) return toast("Already in the list");
+  const l = { itemId: it.id, name: it.name, format, location: bestLoc(it.id, format), required: fmt(num($("#addQty").value) || 1), price: priceOf(it, format) ?? "", endS: "", endN: "", saq: "" };
+  autoSplit(l, evDraft); evDraft.lines.push(l);
+  saveEventNow(); renderSheet(); setTimeout(() => $("#addItem")?.focus(), 30);
+}
+async function pullFromStock() {
+  const ev = evDraft, t = eventTotals(ev);
+  ev.lines.forEach(syncFrom); const over = ev.lines.filter(pickOver).map(lineName);
+  if (!confirm(`Take ${fmt(t.fromStock)} units out of stock for "${ev.name}"?` + (evStamp(ev) === "mix" ? `\n(stamped ${fmt(t.fromS)} · not stamped ${fmt(t.fromN)})` : "") +
+      (t.buy ? `\n${fmt(t.buy)} units to buy.` : "") + (over.length ? `\n\n⚠ More than in stock: ${over.join(", ")}` : ""))) return;
+  const ops = [];
+  for (const l of ev.lines) for (const [key, v] of Object.entries(picksOf(l))) if (num(v) > 0)
+    ops.push(moveOp(l.itemId, "remove", num(v), { stamp: key.split("|")[1], format: l.format, location: key.split("|")[0], event: ev.name, eventId: ev.id, phase: "pull", note: "Taken for event" }));
+  ev.status = "out"; ev.pulledAt = Date.now();
+  ops.push({ op: "set", col: C.events, id: ev.id, data: ev });
+  clearTimeout(saveTimer); saveTimer = null;
+  await store.batch(ops); toast("Stock updated"); renderSheet();
+}
+async function undoPhase(phase, newStatus, msg) {
+  if (!confirm(msg)) return;
+  const ops = moves.filter(m => m.eventId === evDraft.id && m.phase === phase).map(m => ({ op: "del", col: C.moves, id: m.id }));
+  evDraft.status = newStatus;
+  ops.push({ op: "set", col: C.events, id: evDraft.id, data: evDraft });
+  clearTimeout(saveTimer); saveTimer = null;
+  await store.batch(ops); toast("Done"); renderSheet();
+}
+async function closeEvent() {
+  const ev = evDraft, t = eventTotals(ev);
+  if (t.missingEnd) return toast(`Enter the end count for all items (${t.missingEnd} missing)`);
+  if (ev.lines.some(l => lineCalc(l).over)) return toast("End count is higher than what was brought");
+  if (!confirm(`Close "${ev.name}"?\n\nCost used: ${money(t.cost)}\nBack to stock: ${fmt(t.back)} units (stamped ${fmt(t.backS)} · not stamped ${fmt(t.backN)})\nReturn to SAQ: ${fmt(t.saq)} units (${money(t.saqValue)})`)) return;
+  const ops = [];
+  for (const l of ev.lines) { const c = lineCalc(l);
+    for (const kk of ["S", "N"]) { const q = kk === "S" ? c.backS : c.backN;
+      if (q > 0) ops.push(moveOp(l.itemId, "add", q, { stamp: kk, format: l.format, location: returnLoc(l, kk), event: ev.name, eventId: ev.id, phase: "close", note: "Back from event" })); } }
+  ev.status = "closed"; ev.closedAt = Date.now();
+  ops.push({ op: "set", col: C.events, id: ev.id, data: ev });
+  clearTimeout(saveTimer); saveTimer = null;
+  await store.batch(ops); toast("Event closed — inventory updated"); renderSheet();
+}
+function copyShopping() {
+  const mix = evStamp(evDraft) === "mix", out = [];
+  for (const l of evDraft.lines) for (const kk of ["S", "N"]) { const q = num(l["buy" + kk]); if (q > 0)
+    out.push(`${fmt(q)} × ${lineName(l)}${mix ? ` [${STAMP[kk]}]` : ""}${num(l.price) ? `  (${money(q * num(l.price))})` : ""}`); }
+  const txt = `SHOPPING LIST — ${evDraft.name} (${dOnly(evDraft.date)}) — ${STAMP[evStamp(evDraft)]}\n` + out.join("\n") + `\nTotal: ${money(eventTotals(evDraft).buyCost)}`;
+  navigator.clipboard?.writeText(txt).then(() => toast("Shopping list copied"), () => prompt("Copy:", txt));
+}
+function exportEventCSV() {
+  const ev = evDraft, q = v => `"${String(v ?? "").replace(/"/g, '""')}"`;
+  const rows = [["Item", "Format", "From stock stamped", "From stock not stamped", "Bought stamped", "Bought not stamped", "Brought", "End stamped", "End not stamped", "Used", "SAQ $ (tax incl.)", "Cost used (before tax)", "Back to stock stamped", "Back to stock not stamped", "Return SAQ"]];
+  for (const l of ev.lines) { const c = lineCalc(l);
+    rows.push([items[l.itemId]?.name || l.name, l.format, c.fromS, c.fromN, c.buyS, c.buyN, c.brought, c.endS, c.endN, c.used, c.priceIncl.toFixed(2), (c.cost || 0).toFixed(2), c.backS, c.backN, c.saq]); }
+  const t = eventTotals(ev); rows.push(["TOTAL", "", t.fromS, t.fromN, t.buyS, t.buyN, t.brought, "", "", t.used, "", t.cost.toFixed(2), t.backS, t.backN, t.saq]);
+  download(`${slug(ev.name)}-${ev.date || ""}.csv`, rows.map(r => r.map(q).join(",")).join("\n"));
+}
+function download(name, csv) { const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob(["﻿" + csv], { type: "text/csv" })); a.download = name; a.click(); }
+
+function renderEventEdit() {
+  const isNew = currentId === "__new";
+  const ev = isNew ? { name: "", date: new Date().toISOString().slice(0, 10), client: "", notes: "", stamp: pref.get("evStamp") || "N", status: "planning" } : evDraft;
+  const lock = ev.status !== "planning";
+  $("#sheet").innerHTML = `
+    <div class="sheet-top"><h2>${isNew ? "New event" : "Edit event"}</h2><button class="close" data-a="close">×</button></div>
+    <div class="grid3" style="margin-top:14px">
+      <div class="field"><label>Event name</label><input id="evName" value="${esc(ev.name)}" placeholder="e.g. BGO"></div>
+      <div class="field"><label>Date</label><input id="evDate" type="date" value="${esc(ev.date)}"></div>
+      <div class="field"><label>Client</label><input id="evClient" value="${esc(ev.client)}"></div>
+    </div>
+    <div class="grid2">
+      <div class="field"><label>Alcohol required</label>
+        <select id="evStamp" ${lock ? "disabled" : ""}>${["N", "S", "mix"].map(x => `<option value="${x}" ${evStamp(ev) === x ? "selected" : ""}>${x === "mix" ? "Mix (stamped + not stamped)" : STAMP[x]}</option>`).join("")}</select>
+        ${lock ? `<span class="note">Can be changed only before taking from stock.</span>` : ""}</div>
+      <div class="field"><label>Notes (optional)</label><input id="evNotes" value="${esc(ev.notes)}"></div>
+      <div class="field"><label>Number of guests</label><input id="evGuests" inputmode="numeric" value="${esc(ev.guests ?? "")}" placeholder="e.g. 105"></div>
+      <div class="field"><label>Price charged per guest ($, optional)</label><input id="evPP" inputmode="decimal" value="${esc(ev.pricePP ?? "")}" placeholder="e.g. 60"></div>
+    </div>
+    ${isNew ? `<div class="field"><label>Start the alcohol list from</label>
+      <select id="evCopy"><option value="tpl:Basic bar" selected>Basic bar list (${basicList().length} items)</option><option value="">— Empty list —</option>${Object.values(events).sort((a, b) => (b.date || "").localeCompare(a.date || "")).map(e => `<option value="${esc(e.id)}">${esc(e.name)} · ${dOnly(e.date)}</option>`).join("")}</select></div>` : ""}
+    <div class="edit-actions">
+      ${isNew ? "<span></span>" : `<button class="btn danger" data-a="delEvent">Delete event</button>`}
+      <div style="display:flex;gap:10px"><button class="btn ghost" data-a="cancelEdit">Cancel</button><button class="btn" data-a="saveEvent">${isNew ? "Create" : "Save"}</button></div>
+    </div>`;
+}
+async function saveEventInfo() {
+  const name = $("#evName").value.trim(); if (!name) return toast("Event name is required");
+  const info = { name, date: $("#evDate").value, client: $("#evClient").value.trim(), notes: $("#evNotes").value.trim(), guests: $("#evGuests").value.trim(), pricePP: $("#evPP").value.trim() };
+  const newStamp = $("#evStamp").value;
+  if (currentId === "__new") {
+    const id = store.newId(); pref.set("evStamp", newStamp);
+    evDraft = { id, ...info, stamp: newStamp, status: "planning", lines: [], cocktails: [], extras: [], createdAt: Date.now(),
+      mixers: mixerList().map(name => ({ name, qty: "", unit: "", price: "", note: "" })), packlist: packTpl().map(name => ({ name, qty: "", note: "" })) };
+    if ($("#evCopy").value.startsWith("tpl:")) evDraft.lines = basicList().map(x => { const it = findItem(x.name); if (!it) return null;
+      const n = { itemId: it.id, name: it.name, format: x.format, location: bestLoc(it.id, x.format), required: "0", price: priceOf(it, x.format) ?? "", endS: "", endN: "", saq: "" }; autoSplit(n, evDraft); return n; }).filter(Boolean);
+    const src = events[$("#evCopy").value];
+    if (src) evDraft.lines = src.lines.filter(l => items[l.itemId]).map(l => { const n = { itemId: l.itemId, name: l.name, format: l.format, location: bestLoc(l.itemId, l.format), required: fmt(num(l.required)), price: priceOf(items[l.itemId], l.format) ?? l.price ?? "", endS: "", endN: "", saq: "" }; autoSplit(n, evDraft); return n; });
+    currentId = id;
+  } else {
+    Object.assign(evDraft, info);
+    if (evDraft.status === "planning" && newStamp !== evStamp(evDraft)) { evDraft.stamp = newStamp; evDraft.lines.forEach(l => autoSplit(l, evDraft)); }
+  }
+  const ops = [{ op: "set", col: C.events, id: evDraft.id, data: evDraft }];
+  moves.filter(m => m.eventId === evDraft.id && m.event !== name).forEach(m => ops.push({ op: "set", col: C.moves, id: m.id, data: { event: name }, merge: true }));
+  await store.batch(ops); editing = false; renderSheet();
+}
+async function deleteEvent() {
+  const linked = moves.filter(m => m.eventId === evDraft.id);
+  if (!confirm(`Delete event "${evDraft.name}"?` + (linked.length ? `\n\nIts ${linked.length} stock movement(s) will also be deleted and the inventory recalculated.` : ""))) return;
+  await store.batch([...linked.map(m => ({ op: "del", col: C.moves, id: m.id })), { op: "del", col: C.events, id: evDraft.id }]);
+  closeSheet(); toast("Event deleted");
+}
+
+/* =====================================================================
+   HISTORY & SETTINGS
+   ===================================================================== */
+function renderHistory() {
+  const sel = $("#hEvent"), cur = sel.value;
+  sel.innerHTML = `<option value="">All events</option>` + [...new Set(moves.map(m => m.event).filter(Boolean))].sort().map(e => `<option ${e === cur ? "selected" : ""}>${esc(e)}</option>`).join("");
+  const q = $("#hq").value.trim().toLowerCase(), ev = sel.value;
+  const after = {}; for (const id in items) for (const r of replay(id).rows) after[r.id] = r.after;
+  const rows = moves.filter(m => (!ev || m.event === ev) && (!q || [m.itemName, items[m.itemId]?.name, m.by, m.note, m.event].join(" ").toLowerCase().includes(q))).sort((a, b) => b.ts - a.ts);
+  $("#hBody").innerHTML = rows.length ? rows.slice(0, 500).map(m => `<tr>
+      <td>${dt(m.ts)}${m.note ? `<div class="note">${esc(m.note)}</div>` : ""}</td><td><b>${esc(items[m.itemId]?.name || m.itemName)}</b></td>
+      <td>${esc(m.event || "—")}</td><td>${esc(m.by || "—")}</td><td class="mv ${m.type}">${mvCell(m)}</td>
+      <td>${after[m.id] != null ? fmt(after[m.id]) : "—"}</td><td><button class="del" data-del="${esc(m.id)}">Delete</button></td></tr>`).join("")
+    : `<tr><td colspan="7" class="empty">No movement.</td></tr>`;
+}
+function exportHistoryCSV() {
+  const ev = $("#hEvent").value, q = v => `"${String(v ?? "").replace(/"/g, '""')}"`;
+  const after = {}; for (const id in items) for (const r of replay(id).rows) after[r.id] = r.after;
+  const rows = moves.filter(m => !ev || m.event === ev).sort((a, b) => a.ts - b.ts);
+  download(`bar-history${ev ? "-" + slug(ev) : ""}.csv`, [["Date","Item","Format","Category","Location","Event","By","Type","Stamped","Qty","Total after","Note"].join(",")]
+    .concat(rows.map(m => { const it = items[m.itemId] || {}; return [dt(m.ts), it.name || m.itemName, m.format || "", it.category, locOf(m), m.event, m.by, m.type, m.stamp === "S" ? "Stamped" : "Not stamped", m.qty, after[m.id], m.note].map(q).join(","); })).join("\n"));
+}
+function renderSettings() {
+  $("#names").innerHTML = names.map((n, i) => `<span class="namechip">${esc(n)}<button data-rmname="${i}">×</button></span>`).join("") || `<span class="sub">No names yet.</span>`;
+  $("#locList").textContent = LOCATIONS.join(" · ");
+  $("#tplList").innerHTML = basicList().map((x, i) => `<span class="namechip">${esc(x.name)} <span class="split">${esc(x.format)}</span><button data-rmtpl="${i}">×</button></span>`).join("");
+  if (document.activeElement?.id !== "pOz") $("#pOz").value = params.ozPerDrink;
+  if (document.activeElement?.id !== "tplMix") $("#tplMix").value = mixerList().join("\n");
+  if (document.activeElement?.id !== "tplPack") $("#tplPack").value = packTpl().join("\n");
+  if (document.activeElement?.id !== "pMix") $("#pMix").value = params.mixerPerDrink;
+}
+const saveNames = list => put(C.meta, "settings", { names: list }, true);
+
+/* =====================================================================
+   UI EVENTS
+   ===================================================================== */
+document.querySelectorAll("nav button").forEach(b => b.onclick = () => {
+  document.querySelectorAll("nav button").forEach(x => x.classList.toggle("active", x === b));
+  document.querySelectorAll(".view").forEach(v => v.classList.toggle("active", v.id === "v-" + b.dataset.tab));
+});
+$("#q").oninput = renderList; $("#eq").oninput = renderEvents;
+$("#hq").oninput = renderHistory; $("#hEvent").onchange = renderHistory; $("#csvBtn").onclick = exportHistoryCSV;
+$("#locChips").addEventListener("change", e => { if (e.target.id === "showEmpty") { showEmpty = e.target.checked; renderList(); } });
+$("#locChips").onclick = e => { const c = e.target.closest("[data-loc]"); if (c) { locFilter = c.dataset.loc; renderList(); } };
+$("#evChips").onclick = e => { const c = e.target.closest("[data-evf]"); if (c) { evFilter = c.dataset.evf; renderEvents(); } };
+$("#itemList").onclick = e => { const r = e.target.closest("[data-id]"); if (r) openSheet("item", r.dataset.id); };
+$("#eventList").onclick = e => { const r = e.target.closest("[data-ev]"); if (r) openSheet("event", r.dataset.ev); };
+$("#newItemBtn").onclick = () => store && openSheet("item", "__new");
+$("#newEventBtn").onclick = () => store && openSheet("event", "__new");
+$("#hBody").onclick = e => { const d = e.target.closest("[data-del]"); if (d) deleteMovement(d.dataset.del); };
+$("#addNameBtn").onclick = () => { const n = $("#newName").value.trim(); if (n && !names.includes(n)) saveNames([...names, n]); $("#newName").value = ""; };
+$("#newName").onkeydown = e => { if (e.key === "Enter") $("#addNameBtn").click(); };
+$("#names").onclick = e => { const b = e.target.closest("[data-rmname]"); if (b && confirm(`Remove "${names[b.dataset.rmname]}"?`)) saveNames(names.filter((_, i) => i != b.dataset.rmname)); };
+const saveTpl = list => put(C.meta, "settings", { templates: { ...(templates || {}), "Basic bar": list } }, true);
+$("#tplItem").oninput = () => { const it = findItem($("#tplItem").value); $("#tplFmt").innerHTML = it ? fmtsOf(it).map(f => `<option>${esc(f)}</option>`).join("") : `<option value="">Format</option>`; };
+$("#tplAdd").onclick = () => { const it = findItem($("#tplItem").value); if (!it) return toast("Item not found");
+  const format = $("#tplFmt").value || fmtsOf(it)[0], list = basicList();
+  if (list.some(x => x.name === it.name && x.format === format)) return toast("Already in the list");
+  saveTpl([...list, { name: it.name, format }]); $("#tplItem").value = ""; toast("Added to the basic bar list"); };
+$("#tplList").onclick = e => { const b = e.target.closest("[data-rmtpl]"); if (b) saveTpl(basicList().filter((_, i) => i != b.dataset.rmtpl)); };
+$("#tplListsSave").onclick = () => { const lines = id => $(id).value.split("\n").map(x => x.trim()).filter(Boolean);
+  put(C.meta, "settings", { templates: { ...(templates || {}), "Mixers": lines("#tplMix"), "Bar pack list": lines("#tplPack") } }, true).then(() => toast("Lists saved")); };
+$("#pSave").onclick = () => { const oz = num($("#pOz").value), mix = num($("#pMix").value); if (!oz) return toast("Enter oz per drink");
+  put(C.meta, "settings", { params: { ozPerDrink: oz, mixerPerDrink: mix } }, true).then(() => toast("Parameters saved")); };
+$("#resetBtn").onclick = () => { if (confirm("Erase ALL test data on this device (items, history, events)?")) { store.reset(); location.reload(); } };
+$("#ov").onclick = e => { if (e.target.id === "ov") closeSheet(); };
+document.addEventListener("keydown", e => { if (e.key === "Escape") closeSheet(); });
+
+$("#sheet").addEventListener("input", e => {
+  if (e.target.dataset.pkey != null && evDraft) return onPickInput(e.target);
+  if (e.target.dataset.mx != null && evDraft) { evDraft.mixers[+e.target.dataset.mx][e.target.dataset.mf] = e.target.value; scheduleEventSave();
+    const tot = evDraft.mixers.reduce((a, m) => a + num(m.qty) * num(m.price), 0), el = document.getElementById("mxTotal"); if (el) el.textContent = tot ? "Mixer cost: " + money(tot) : ""; return; }
+  if (e.target.dataset.pk != null && evDraft) { evDraft.packlist[+e.target.dataset.pk][e.target.dataset.pf] = e.target.value; scheduleEventSave(); return; }
+  if (e.target.dataset.xi != null && evDraft) { evDraft.extras[+e.target.dataset.xi][e.target.dataset.xf] = e.target.value; scheduleEventSave();
+    const sm = document.getElementById("evSummary"); if (sm) sm.innerHTML = summaryHTML(evDraft); return; }
+  if (e.target.classList.contains("ci-item")) { const it = findItem(e.target.value), sel = e.target.parentElement.querySelector(".ci-fmt");
+    sel.innerHTML = it ? fmtsOf(it).map(f => `<option>${esc(f)}</option>`).join("") : `<option value="">Format</option>`; return; } if (sheetKind === "event" && e.target.dataset.f) onEventInput(e.target); if (e.target.id === "addItem") fillAddFmt(); });
+$("#sheet").addEventListener("keydown", e => { if (e.key === "Enter" && (e.target.id === "addItem" || e.target.id === "addQty")) addLine(); });
+$("#sheet").addEventListener("focusout", () => { if (sheetKind === "event") flushEventSave(); });
+$("#sheet").addEventListener("change", e => { const s = e.target.closest("[data-locline]"); if (!s || !evDraft) return;
+  const l = evDraft.lines[+s.dataset.locline]; l.location = s.value; autoSplit(l, evDraft); saveEventNow(); renderSheet(); });
+$("#sheet").onchange = e => { if (e.target.id === "fBy") { const o = $("#fByOther"); o.style.display = e.target.value === "__other" ? "block" : "none"; if (e.target.value === "__other") o.focus(); } };
+$("#sheet").onclick = e => {
+  const t = e.target.closest("button"); if (!t) return;
+  const a = t.dataset.a;
+  if (t.dataset.mode) {
+    const keep = { ev: $("#fEvent").value, note: $("#fNote").value, by: $("#fBy").value, other: $("#fByOther").value };
+    mode = t.dataset.mode; renderSheet();
+    $("#fEvent").value = keep.ev; $("#fNote").value = keep.note; $("#fBy").value = keep.by; $("#fByOther").value = keep.other;
+    $("#fByOther").style.display = keep.by === "__other" ? "block" : "none"; return;
+  }
+  if (t.dataset.locsel != null) {
+    const keep = { ev: $("#fEvent").value, note: $("#fNote").value, by: $("#fBy").value, other: $("#fByOther").value, q: $("#fQty").value };
+    locSel = t.dataset.locsel; renderSheet();
+    $("#fEvent").value = keep.ev; $("#fNote").value = keep.note; $("#fBy").value = keep.by; $("#fByOther").value = keep.other;
+    if (mode !== "count") $("#fQty").value = keep.q;
+    $("#fByOther").style.display = keep.by === "__other" ? "block" : "none"; return;
+  }
+  if (t.dataset.fmt != null) {
+    const keep = { ev: $("#fEvent").value, note: $("#fNote").value, by: $("#fBy").value, other: $("#fByOther").value, q: $("#fQty").value };
+    fmtSel = t.dataset.fmt; renderSheet();
+    $("#fEvent").value = keep.ev; $("#fNote").value = keep.note; $("#fBy").value = keep.by; $("#fByOther").value = keep.other;
+    if (mode !== "count") $("#fQty").value = keep.q;
+    $("#fByOther").style.display = keep.by === "__other" ? "block" : "none"; return;
+  }
+  if (t.dataset.addfmt != null) { $("#fmtRows").insertAdjacentHTML("beforeend", fmtRow(t.dataset.addfmt)); const r = $("#fmtRows").lastElementChild; (t.dataset.addfmt ? r.querySelector("[data-fp]") : r.querySelector("[data-fn]")).focus(); return; }
+  if (t.dataset.rmfmt != null) { t.closest(".fmtrow").remove(); return; }
+  if (t.dataset.stamp) {
+    const keep = { ev: $("#fEvent").value, note: $("#fNote").value, by: $("#fBy").value, other: $("#fByOther").value, q: $("#fQty").value };
+    stampSel = t.dataset.stamp; pref.set("stamp", stampSel); renderSheet();
+    $("#fEvent").value = keep.ev; $("#fNote").value = keep.note; $("#fBy").value = keep.by; $("#fByOther").value = keep.other;
+    if (mode !== "count") $("#fQty").value = keep.q;
+    $("#fByOther").style.display = keep.by === "__other" ? "block" : "none"; return;
+  }
+  if (t.dataset.del) return deleteMovement(t.dataset.del);
+  if (t.dataset.pick != null) { flushEventSave(); openPick = openPick === +t.dataset.pick ? null : +t.dataset.pick; return renderSheet(); }
+  if (t.dataset.autopick != null) { const l = evDraft.lines[+t.dataset.autopick]; autoSplit(l, evDraft); saveEventNow(); return renderSheet(); }
+  if (t.dataset.evtab) { flushEventSave(); evTab = t.dataset.evtab; return renderSheet(); }
+  if (t.dataset.rmmx != null) { evDraft.mixers.splice(+t.dataset.rmmx, 1); saveEventNow(); return renderSheet(); }
+  if (t.dataset.rmpk != null) { evDraft.packlist.splice(+t.dataset.rmpk, 1); saveEventNow(); return renderSheet(); }
+  if (t.dataset.rmx != null) { evDraft.extras.splice(+t.dataset.rmx, 1); saveEventNow(); return renderSheet(); }
+  if (t.dataset.rmck != null) return removeCocktail(+t.dataset.rmck);
+  if (t.dataset.rmline != null) {
+    const l = evDraft.lines[+t.dataset.rmline];
+    if (confirm(`Remove ${items[l.itemId]?.name || l.name} from the list?`)) { evDraft.lines.splice(+t.dataset.rmline, 1); saveEventNow(); renderSheet(); }
+    return;
+  }
+  const map = {
+    close: closeSheet,
+    minus: () => { const i = $("#fQty"); i.value = fmt(Math.max(0, num(i.value) - 1)); },
+    plus: () => { const i = $("#fQty"); i.value = fmt(num(i.value) + 1); },
+    saveMove: saveMovement, editItem: () => { editing = true; renderSheet(); }, saveItem, delItem: deleteItem,
+    cancelEdit: () => { if (currentId === "__new") return closeSheet(); editing = false; renderSheet(); },
+    editEvent: () => { flushEventSave(); editing = true; renderSheet(); }, saveEvent: saveEventInfo, delEvent: deleteEvent,
+    addLine, pull: pullFromStock, addCocktail, packPdf: openPackList,
+    addMixer: () => { (evDraft.mixers ??= []).push({ name: "", qty: "", unit: "", price: "", note: "" }); saveEventNow(); renderSheet(); },
+    addPack: () => { (evDraft.packlist ??= []).push({ name: "", qty: "", note: "" }); saveEventNow(); renderSheet(); },
+    loadMixers: () => { const have = new Set((evDraft.mixers ??= []).map(m => m.name)); mixerList().forEach(n => have.has(n) || evDraft.mixers.push({ name: n, qty: "", unit: "", price: "", note: "" })); saveEventNow(); renderSheet(); },
+    loadPack: () => { const have = new Set((evDraft.packlist ??= []).map(m => m.name)); packTpl().forEach(n => have.has(n) || evDraft.packlist.push({ name: n, qty: "", note: "" })); saveEventNow(); renderSheet(); },
+    addIng: () => $("#ckIngs").insertAdjacentHTML("beforeend", $("#ckIngs .ingrow").outerHTML.replace(/<option>[^<]*<\/option>/g, "").replace("</select>", '<option value="">Format</option></select>')),
+    addExtra: () => { (evDraft.extras ??= []).push({ label: "", qty: "", unit: "" }); saveEventNow(); renderSheet(); }, copyShop: copyShopping, closeEv: closeEvent, csvEvent: exportEventCSV,
+    undoPull: () => undoPhase("pull", "planning", "Put the bottles back in stock and go back to the required list?"),
+    reopen: () => undoPhase("close", "out", "Reopen this event? The leftovers added back to stock will be removed again until you close it.")
+  };
+  map[a]?.();
+};
+</script>
+</body>
+</html>
